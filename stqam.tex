@@ -1,0 +1,236 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{url}
+
+\begin{document}
+\title{Software Testing, Quality Assurance and Maintenance\\SE465 (3A), Winter 2015}
+\author{Patrick Lam}
+\renewcommand{\today}{}
+\maketitle
+\vspace*{-2em}
+
+\section*{Brief Overview}
+As you have no doubt discovered, software never works right from the
+start. A key technique for getting more acceptable software is
+testing. Organized testing can help identify problems in software
+systems, enabling developers to fix these problems.  This course will
+introduce software testing techniques; while it's not my goal
+to produce testers, you should at least be conversant
+with up-to-date testing methodologies and techniques.
+
+In this class, we will also touch on software maintenance. While we
+greatly (over?) emphasize design in engineering school, maintenance
+consumes a large fraction of today's software development resources.
+
+\section*{General Information}
+
+\noindent
+\begin{tabbing}
+  {\bf Course Web Page:} \= \url{http://patricklam.ca/stqam}\\
+  github repo:\= \url{git@github.com:patricklam/stqam-2015.git}\\
+  other section: \> \url{http://www.ece.uwaterloo.ca/~lintan/courses/testing/} \\
+  {\bf Lectures:} \> MWF 14:30-15:20, RCH 302
+\end{tabbing}
+
+\noindent
+{\bf Instructor:} \\
+
+\noindent
+\hspace*{2em} \begin{minipage}{.6\textwidth}
+Prof. Patrick Lam\\
+Office: DC2597D\\
+Office Hours: Wednesdays 10:30-12:30, or by appointment\\
+Email: {\tt p.lam@ece.uwaterloo.ca}\\
+Phone: Use email instead!
+
+\end{minipage} \\[1em]
+
+\noindent {\bf Lab Instructor:} \\
+
+\noindent
+\hspace*{2em} \begin{minipage}{.6\textwidth}
+Bernie Roehl\\
+Office: E2-2358\\
+Email: {\tt broehl@uwaterloo.ca}\\
+
+\end{minipage} \\[1em]
+
+
+\noindent {\bf Teaching Assistants:} \\
+
+\noindent
+\hspace*{2em}\begin{tabular}{l@{\hspace*{3em}}l@{\hspace*{3em}}l}
+  Mike Chong&
+  DC 2544&
+  {\tt mcchong@uwaterloo.ca}\\
+  Taiyue Liu&
+  DC 2544&
+  {\tt t67liu@uwaterloo.ca}\\
+  Jeff Luo&
+  DC 3546&
+  {\tt j36luo@uwaterloo.ca}\\
+  Thibaud Lutellier&
+  DC 2544&
+  {\tt thibaud.lutellier@uwaterloo.ca}\\
+  Abdel Tawakol&
+  E5-5037&
+  {\tt amtawako@uwaterloo.ca}\\
+  Song Wang&
+  DC 2544&
+  {\tt song.wang@uwaterloo.ca}\\
+  Edmund Wong&
+  DC 2544&
+  {\tt e32wong@uwaterloo.ca}\\
+  Jinqiu Yang&
+  DC 2544&
+  {\tt j223yang@uwaterloo.ca}
+\end{tabular}
+
+\section*{Course Description}
+\paragraph{Objectives}
+\begin{itemize}
+  \item You will be able to create and evaluate test suites for reasonably-sized
+software systems.
+
+  \item You will learn how to use and write tools for software maintenance and
+verification (particularly automated testing tools).
+
+  \item You will gain experience with carrying out modifications
+to a large pre-existing software package.
+\end{itemize}
+
+We hope that you will learn how to test as a developer, thus making
+you a better developer. 
+
+\paragraph{Topics.}
+We've been trying to make this course more practical.  Some of the
+coverage material still follows the book by Ammann and Offutt. I will
+supplement the material in the book with some additional material. The
+following list is non-exhaustive.
+
+\begin{itemize}
+\item Coverage, subsumption and infeasibility
+\item Graph Coverage (includes control-flow graphs, path and dataflow testing, state-based testing, call-graph-based testing, path-based testing)
+\item Logic Coverage (includes decision tables)
+\item Input Space Coverage
+\item Syntax-Based Testing (i.e. mutation testing)
+\item Testing in Practice, including concurrency, regression testing, automatic testing tools, mock objects, fuzzing
+\item Non-testing-based Software Quality Assurance (code reviews, pair
+programming, software model checking and verification)
+\item Software Maintenance
+\end{itemize}
+
+\section*{Reference Material}
+Optional textbook:
+\begin{quote}
+    Paul Ammann and Jeff Offutt. Introduction to Software Testing. Cambridge University Press, 2008.
+\end{quote}
+
+\noindent I also strongly recommend the following book:
+
+\begin{quote}
+    Andreas Zeller. Why Programs Fail: a Guide to Systematic Debugging. Morgan Kaufmann, 2005.
+\end{quote}
+
+\noindent The Zeller book is quite practical and I expect that it will be useful to you in the future as well.
+
+
+\section*{Evaluation}
+This course includes assignments, a midterm, a course project, and a final
+examination.
+
+\begin{tabular}{lrl}
+4 individual assignments & 20\% & (5\% each) \\
+Course project (in groups, up to 3/group) & 15\% \\
+Midterm & 15\% \\
+Final exam & 50\% \\
+\end{tabular}
+
+\noindent The midterm and final exams will be open-book, open-notes. 
+
+\paragraph{Schedule.} Assignment handin will be done through the git server at {\tt ecgit.uwaterloo.ca}.\\[-1em]
+\begin{center}
+\begin{tabular}{ll}
+January 8	&A1 out\\
+January 18	&A1 due, A2 out\\
+February 1	&A2 due, A3 out\\
+February 9	&Midterm (7-9PM)\\
+February 22	&A3 due, A4 out\\
+March 8	        &A4 due\\
+April 5 	&Last lecture; project due\\
+Exam period	&Final exam
+\end{tabular}~\\
+\end{center}
+You can also find the dates on the following Google calendar:\\
+\hspace*{3em}\url{bgt2ebdab4eff0ip7b8flgnah8@group.calendar.google.com}
+
+\paragraph{Group work.} The project will be done in groups.
+You may discuss assignments with others, but I expect each of
+you to do the assignment independently. I will follow UW's Policy 71
+if I discover any cases of plagiarism. I will not use turnitin.
+
+\paragraph{Lateness.} You have 2 days of lateness to use on assignment 
+submissions throughout the term. Each day you hand in an assignment
+late consumes one of the days of lateness. If you consume all of your
+late days, assignments that are still late will get 0. Missed assignments get 0.
+
+For example, you may hand in A1 one day late and A2 one day late if
+you hand in A3 on time.  Or you can hand in A1-A2 on time and
+A3 two days late.
+
+\section*{Differences between sections}
+Prof. Lin Tan is teaching 2 other sections of this class. We will
+over similar material. The deliverables and exams will be
+the same.  You can do the project with partners in other sections.
+Lecture material may differ. If that happens, then we would have
+exams where you have some choice of which question to answer.
+
+\section*{Required inclusions}
+\small \vspace*{-1em}
+Academic Integrity: In order to maintain a culture of academic
+integrity, members of the University of Waterloo community are
+expected to promote honesty, trust, fairness, respect and
+responsibility. [Check \url{www.uwaterloo.ca/academicintegrity/} for more
+  information.]
+
+\noindent
+Grievance: A student who believes that a decision affecting some
+aspect of his/her university life has been unfair or unreasonable may
+have grounds for initiating a grievance. Read Policy 70, Student
+Petitions and Grievances, Section 4,
+\url{www.adm.uwaterloo.ca/infosec/Policies/policy70.htm}.  When in doubt
+please be certain to contact the department’s administrative assistant
+who will provide further assistance.
+
+\noindent
+Discipline: A student is expected to know what constitutes academic
+integrity [check \url{www.uwaterloo.ca/academicintegrity/}] to avoid
+committing an academic offence, and to take responsibility for his/her
+actions. A student who is unsure whether an action constitutes an
+offence, or who needs help in learning how to avoid offences (e.g.,
+plagiarism, cheating) or about “rules” for group work/collaboration
+should seek guidance from the course instructor, academic advisor, or
+the undergraduate Associate Dean. For information on categories of
+offences and types of penalties, students should refer to Policy 71,
+Student Discipline,
+\url{www.adm.uwaterloo.ca/infosec/Policies/policy71.htm}. For typical
+penalties check Guidelines for the Assessment of Penalties,
+www.adm.uwaterloo.ca/infosec/guidelines/penaltyguidelines.htm.
+
+\noindent
+Appeals: A decision made or penalty imposed under Policy 70 (Student
+Petitions and Grievances) (other than a petition) or Policy 71
+(Student Discipline) may be appealed if there is a ground. A student
+who believes he/she has a ground for an appeal should refer to Policy
+72 (Student Appeals)
+\url{www.adm.uwaterloo.ca/infosec/Policies/policy72.htm}.  Note for Students
+with Disabilities: The Office for Persons with Disabilities (OPD),
+located in Needles Hall, Room 1132, collaborates with all academic
+departments to arrange appropriate accommodations for students with
+disabilities without compromising the academic integrity of the
+curriculum. If you require academic accommodations to lessen the
+impact of your disability, please register with the OPD at the
+beginning of each academic term.
+
+
+\end{document}
