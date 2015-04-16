@@ -1,0 +1,254 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage{hyperref}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+%\renewcommand{\baselinestretch}{1.25}
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+\begin{document}
+
+\lecture{25 --- March 9, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+\section*{Logic Coverage}
+
+We now shift from graphs to logical expressions, for instance:
+
+\begin{center}
+\tt if (visited \&\& x > y || foo(z))
+\end{center}
+
+Graphs are made up of nodes, connected by edges. Logical expressions,
+or predicates, are made up of clauses, connected by operators.
+
+\paragraph{Motivation.} Logic coverage is required by standard if you're writing
+avionics software. The idea is that software makes conditional decisions. While a
+condition evaluates to true or false, there are a number of ways that it might
+have done so, depending on its subparts. Logic coverage aims to make sure that
+test cases explore the subparts adequately.
+
+The standard is called DO-178B. You can find a tutorial about logic coverage,
+and in particular the coverage called Modified Condition/Decision Coverage (MC/DC), here:
+\url{http://shemesh.larc.nasa.gov/fm/papers/Hayhurst-2001-tm210876-MCDC.pdf}.
+
+\paragraph{Predicates.} A \emph{predicate} is an expression that evaluates
+to a logical value. Example:
+\[ a \wedge b \leftrightarrow c \]
+Here are the operators we allow, in order of precedence (high to low):
+\begin{itemize}
+\item $\neg$: negation
+\item $\wedge$: and (not short-circuit)
+\item $\vee$: or (not short-circuit)
+\item $\rightarrow$: implication
+\item $\oplus$: exclusive or
+\item $\leftrightarrow$: equivalence
+\end{itemize}
+We do not allow quantifiers; they are harder to reason about. Note
+also that our operators are not quite the same as the ones in typical
+programming languages.
+
+\paragraph{Clauses.} Predicates without logical operators are \emph{clauses};
+clauses are, in some sense, ``atomic''. The following predicate contains three clauses:
+\begin{center}
+{\tt (x > y) || foo(z) \&\& bar}
+\end{center}
+
+\paragraph{Logical Equivalence.} Two predicates may be logically equivalent, e.g. 
+\[ x \wedge y \vee z \equiv (x \vee z) \wedge (y \vee z), \]
+and these predicates are not equivalent to $x \leftrightarrow z$. Equivalence is harder with
+short-circuit operators.
+
+\paragraph{Sources of Predicates:} source code, finite state machines, specifications.
+
+\section*{Logic Expression Coverage Criteria}
+We'll use the following notation:
+\begin{itemize}
+\item $P$: a set of predicates;
+\item $C$: all clauses making up the predicates of $P$.
+\end{itemize}
+
+Let $p \in P$. Then we write $C_p$ for the clauses of the predicate $p$, 
+i.e.
+\[ C_p = \{ c\ |\ c \in p \}; \qquad C = \bigcup_{p \in P} C_p \]
+
+Given a set of predicates $P$, we might want to cover all of the predicates.
+\begin{crit}
+{\bf Predicate Coverage} (PC). For each $p \in P$, TR contains two requirements:
+1) $p$ evaluates to true; and 2) $p$ evaluates to false.
+\end{crit}
+PC is analogous to edge coverage on a CFG. (Let $P$ be the 
+predicates associated with branches.)
+
+{\sf Example:} ~\\[1em]
+\[ P = \{ ( x + 1 == y) \wedge z \}. \]
+% predicate coverage: 
+% x = 4, y = 5, z = true -> T
+% x = 3, y = 5, z = true -> F
+
+PC gives a very coarse-grained view of each predicate.
+We can break up predicates into clauses to get more details.
+
+\begin{crit}
+{\bf Clause Coverage} (CC). For each $c \in C$, TR contains two requirements:
+1) $c$ evaluates to true; 2) $c$ evaluates to false.
+\end{crit}
+
+{\sf Example:} ~\\[2em]
+\[ (x + 1 == y) \wedge z\] now needs:
+% x + 1 == y -> T and F
+% z -> T and F
+% This gives the tests (x = 4, y = 5, z = T) and (x = 4, y = 4, z = F).
+
+\paragraph{Subsumption.} Are there subsumption relationships between 
+CC and PC?\\[3em]
+
+% no, example: p = a \wedge b, C = \{ a, b \}
+% T_c = \{ \langle a:T, b:F \rangle, \langle a:F, b:T \rangle \} satisfies CC but not PC;
+% T_p = \{ \langle a:T, b:F \rangle, \langle a:F, b:F \rangle \} satisfies PC but not CC.
+
+The obvious exhaustive approach: try everything. (This obviously subsumes
+everything else).
+
+\begin{crit}
+{\bf Combinatorial Coverage} (CoC). For each $p \in P$, TR has test
+requirements for the clauses in $C_p$ to evaluate to each possible
+combination of truth values.
+\end{crit}
+
+This is also known as multiple condition coverage. Unfortunately, the
+number of test requirements, while finite, grows
+\underline{\hspace*{7em}} and is hence unscalable.
+
+
+\section*{A Heuristic: Active Clauses}
+So, in general, we can't evaluate every value of every clause, because
+there are too many of them. The next best thing is to focus on each
+clause and make sure it affects the predicate. That is, we'll test
+each clause while it is \emph{active}.
+
+{\sf Example.} Consider the following clause:
+\[ p = x \wedge y \vee (z \wedge w) \]
+Let's say that we focus on $y$; we'll call it the major clause.  (We
+may designate any clause as a major clause at our whim.)  That makes $x, z, w$
+minor clauses.
+
+We want to make $y$ \emph{determine} $p$ with certain minor clause
+values. That is:
+\begin{itemize}
+\item if we set $y$ to {\sf true}, then $p$ evaluates to some value $X$;
+\item if we set $y$ to {\sf false}, then $p$ must evaluate to $\neg X$.
+\end{itemize}
+
+The truth assignment:
+\[ x = \mbox{\textvisiblespace} \quad z = \mbox{\textvisiblespace} \quad w = \mbox{\textvisiblespace} \]
+will make $y$ determine $p$; in particular, $y$ {\sf true} makes $p$
+{\sf true} and $t$ {\sf false} makes $p$ {\sf false}.
+% x = true, z = false, w = true.
+
+\begin{defn}
+Designate $c_i$ as a major clause in predicate $p$. Then $c_i$ 
+\emph{determines} $p$ if the minor clauses $c_j \in p, j \neq i$, have
+values such that changing the truth value of $c_i$ changes the truth value
+of $p$.
+\end{defn}
+
+We do \emph{not} require that $c_i$ has the same truth value as $p$.
+{\sf That requirement leads to trouble e.g. for the predicate: }
+
+Informally, determination tests each clause in a context where that
+clause has an effect.
+
+\paragraph{Example.}
+\[ p = a \vee b \]
+{\sf Note that $b$ does not determine $p$ when:}\\[1em]
+% a is true
+
+That is, testing $b$ has no effect; the test set {\sf \{ true, false
+  \} } does not test $a$ or $b$ effectively.
+
+Here is a variant of clause coverage which uses determination.
+\begin{defn}
+Active Clause Coverage (ACC). For each $p \in P$ and making each
+clause $c_i \in C_p$ major, choose assignments for minor clauses $c_j,
+j \neq i$ such that $c_i$ determines $p$. TR has two requirements for each
+$c_i$: $c_i$ evaluates to true and $c_i$ evaluates to false.
+\end{defn}
+This definition is somewhat ambiguous. We'll refine it soon.
+
+\paragraph{Example.} For $p = a \vee b$, make $a$ major. We need
+$b$ to be false for $a$ to determine $p$. {\sf This leads to the TRs:} \\[1em]
+%\[ \{ \langle a:\true, b:\true \rangle, \langle a:\false, b:\false \rangle \} \]
+and similarly for $b$ to determine $p$ {\sf we need TRs:}\\[1em]
+%\[ \{ \langle a:\false, b:\true \rangle, \langle a:\false, b:\false \rangle \} \]
+Note the overlap between test requirements; it will always exist, meaning
+that {\sf our set of TRs for active clause coverage are:}
+%\[ \{ \langle a:\true, b:\true \rangle, \langle a:\false, b:\false \rangle, \langle a:\false, b:\true \rangle \} \]
+
+In general, for a predicate with $n$ clauses, we need $n+1$ test requirements.
+(It might seem that we'd need $2n$ clauses, but we don't. Why?)
+
+
+\end{document}
+

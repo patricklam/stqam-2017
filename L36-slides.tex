@@ -1,0 +1,381 @@
+\documentclass{beamer}
+
+\usetheme{Boadilla}
+
+%\includeonlyframes{current}
+
+\usepackage{times}
+\usefonttheme{structurebold}
+\usepackage{listings}
+\usepackage{ragged2e}
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+\usetikzlibrary{shapes}
+\usepackage{amsmath,amssymb}
+\usepackage{rotating}
+\usepackage{ulem}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{tikz}
+\tikzset{
+  every overlay node/.style={
+    draw=black,fill=white,rounded corners,anchor=north west,
+  },
+}
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+
+%\setbeamercovered{dynamic}
+\setbeamertemplate{footline}[page number]{}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{structurebold}
+
+\title{Software Testing, Quality Assurance \& Maintenance---Lecture 36}
+\author{Patrick Lam}
+\date{April 6, 2015}
+
+\colorlet{redshaded}{red!25!bg}
+\colorlet{shaded}{black!25!bg}
+\colorlet{shadedshaded}{black!10!bg}
+\colorlet{blackshaded}{black!40!bg}
+
+\colorlet{darkred}{red!80!black}
+\colorlet{darkblue}{blue!80!black}
+\colorlet{darkgreen}{green!80!black}
+
+\newcommand{\rot}[1]{\rotatebox{90}{\mbox{#1}}}
+\newcommand{\gray}[1]{\mbox{#1}}
+
+\newenvironment{changemargin}[1]{% 
+  \begin{list}{}{% 
+    \setlength{\topsep}{0pt}% 
+    \setlength{\leftmargin}{#1}% 
+    \setlength{\rightmargin}{1em}
+    \setlength{\listparindent}{\parindent}% 
+    \setlength{\itemindent}{\parindent}% 
+    \setlength{\parsep}{\parskip}% 
+  }% 
+  \item[]}{\end{list}}
+
+
+\lstset{ %
+language=C++,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary: Useful Terms}
+  \Large
+  \begin{changemargin}{1cm}
+\begin{itemize}
+\item software faults, errors and failures; 
+\item tests and test requirements; and
+\item coverage criteria and subsumption.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary: Theory}
+  \Large
+  \begin{changemargin}{1.5cm}
+Key Coverage Criteria:
+\begin{itemize}
+\item graph coverage;
+\item logic coverage;
+\item syntax-based coverage \\ \hspace*{1cm} (and mutation and fuzzing); and 
+\item input-space coverage.
+\end{itemize}
+Evaluate test suites against these criteria.\\
+\hspace*{1cm}(guides test suite construction.)
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary: Practice}
+  \begin{changemargin}{1.8cm}
+We gained experience with:
+\begin{itemize}
+\item using tools for unit testing (JUnit) \& \\ \hspace*{1cm} bug detection (Valgrind) 
+\item  test design: \\ ~~testability, badly designed tests, self-checking tests;
+\item writing an invariant detection and bug detection tool (using
+LLVM and the idea behind Coverity);\\
+\item using the state-of-the-art tool Coverity for bug finding;
+\item writing good bug reports.
+\end{itemize}
+and learned about automated testing and bug detection tools,
+regression testing, testing for concurrency (Helgrind), and
+state-of-the-art techniques (Daikon, Coverity, iComment).
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{About the Final}
+  \Large
+  \begin{changemargin}{1.5cm}
+\begin{itemize}
+\item Tuesday, April 21, 2015, 12:30-3:00, PAC.
+\item Open-book, open note exam.
+\item You may consult any printed material
+(books, slides, notes, etc).
+\item No electronic devices.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Input Space Partitioning}
+  \large
+  \begin{changemargin}{2cm}
+\begin{itemize}
+\item Can't feed all inputs to the program---\\ test a representative set.
+\item Input space partitioning makes this idea more
+formal: test one input from each partition.
+\item Two properties for partitions:\\
+
+\hspace*{1cm} Completeness\\
+\hspace*{1cm} Disjointness
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Input Domain Models}
+  \Large
+  \begin{changemargin}{1.7cm}
+Require creativity and
+analysis to formulate.
+
+Two general approaches:
+\begin{itemize}
+\item Interface-based, using the input space directly, or
+\item Functionality-based, using a functional or behavioural
+view of the program.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Review: Cross-checking program beliefs (MUST)}
+  \begin{changemargin}{1cm}
+\begin{itemize}
+\item MUST beliefs:
+inferred from acts that imply beliefs code {\bf must} have.
+\begin{lstlisting}
+x = *p / z; 
+// MUST belief: p not null
+// MUST: z != 0
+unlock(l);
+// MUST: l acquired
+x++;
+// MUST: x not protected by l
+\end{lstlisting}
+
+ Check using internal consistency: \\
+infer beliefs at different
+locations, then cross-check for contradiction.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Review: Cross-checking program beliefs (MAY)}
+  \begin{changemargin}{1cm}
+\begin{itemize}
+\item MAY beliefs: 
+Could be coincidental.
+
+Inferred from acts that imply beliefs code {\bf may} have.
+\begin{lstlisting}
+A(); A(); A(); A();
+...  ...  ...  ... 
+B(); B(); B(); B();
+// MAY: A() and B()
+// must be paired
+\end{lstlisting}
+
+Check as MUST beliefs; rank errors by belief confidence.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Static vs Dynamic Analysis}
+  \begin{changemargin}{2cm}
+
+Static analysis:
+\begin{itemize}
+\item Conceptually, can find everything.
+\item Problems: pointer aliasing, false positives.
+\end{itemize}
+
+Dynamic analysis:
+\begin{itemize}
+\item Imposes run-time overhead.
+\item Depends on the quality of inputs/environments.
+\item May report false negatives.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Race conditions and Deadlocks}
+  \begin{changemargin}{2cm}
+Race condition: \\
+two concurrent
+accesses to the same state, \\
+at least one of
+which is a write.\\[1em] 
+
+Deadlock: \\ 
+cyclic structure between lock acquisitions\\
+ that 
+will never succeed.
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Testing Concurrent Programs}
+  \begin{changemargin}{2cm}
+Some options:
+\begin{itemize}
+\item Run them multiple times.
+\item Add noise: sleep, background load, \ldots.
+\item Use tools: Helgrind, etc.
+\item Force different scheduling.
+\end{itemize}
+
+Some of these options use the following technologies:
+\begin{itemize}
+\item lock-set;
+\item happens-before;
+\item other state-of-art techniques.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Regression Tests}
+  \begin{changemargin}{2cm}
+\large
+\begin{itemize}
+\item Gotta automate them.
+\item Have enough regression tests:
+\begin{itemize}
+\item Too few: you'll miss bugs.
+\item Too many: maintenance overhead, and if badly designed, too slow to run.
+\end{itemize}
+\item Keep them up-to-date.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Output validation}
+  \begin{changemargin}{2cm}
+\Large
+How do you know your test outputs are correct?
+\begin{itemize}
+\item Hope for the best.
+\item Manual effort.
+\item Compute multiple ways.
+\item Checksums, redundant data, etc.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Review: Syntax-based Testing}
+
+{\scriptsize
+\begin{tabular}{l|ll}
+& Program-based & Input Space \\ \hline
+Grammar & Programming language & Input languages / XML \\
+Summary & Mutates programs / tests integration & Input space testing \\
+Use Ground String? & Yes (compare outputs) & No \\
+Use Valid Strings Only? & Yes (mutants must compile) & Invalid only \\
+Tests & Mutants are not tests & Mutants are tests \\
+Killing & Generate tests by killing & Not applicable \\
+\end{tabular}
+}
+
+  \begin{changemargin}{2cm}
+Strong and weak mutants.
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sample Questions}
+
+\begin{changemargin}{1cm}
+\begin{itemize}
+\item Give an example of a prime path.
+\item Exhibit a case where a clause always determines
+a predicate.
+\item Exhibit a case where a clause never determines
+a predicate.
+\item Why might GACC be infeasible?
+\item What causes node coverage to be infeasible?
+\item Give an example of a $du$-path.
+\item Given a function, draw the CFG. Identify the def-set and use-set of each node, 
+and list the TR for ADC and AUC.
+\item The exercise questions seen in class.
+\end{itemize}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{More Sample Questions}
+\begin{changemargin}{1cm}
+\begin{itemize}
+\item Read given program, give an input that
+strongly kills this mutant.
+\item Enumerate requirements for Prime Path
+Coverage on given example. If PPC is feasible,
+provide a test set which achieves it. Otherwise,
+provide the test set that you feel comes closest
+to achieving PPC.
+\end{itemize}
+\end{changemargin}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Input Space Partitioning: Sample Questions}
+\begin{changemargin}{1cm}
+\begin{itemize}
+\item Propose an input space partition for this method
+(use a functionality-based input domain model):
+\begin{lstlisting}
+static boolean isPrime (int n) {
+  if (n<=1) return false;
+  for (int i = 2; i <= (int)(Math.sqrt(n)); i++)
+    if (n % i == 0)
+      return false;
+  return true;
+}
+\end{lstlisting}
+\end{itemize}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\begin{center}\Huge
+Best of luck\\
+ \alert{\sout{after Convocation}} \\ 
+on your work term.
+\end{center}
+\end{frame}
+
+\end{document}

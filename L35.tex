@@ -1,0 +1,139 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{url}
+
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=2.5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bw} = [rectangle, draw, fill=blue!20, 
+    text width=3.5em, text centered, rounded corners, minimum height=2em]
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf ECE459: Programming for Performance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+
+\newenvironment{itemizep}{
+ \begin{itemize}
+  \setlength{\itemsep}{0pt}
+  \setlength{\parsep}{3pt}
+  \setlength{\topsep}{3pt}
+  \setlength{\partopsep}{0pt}
+  \setlength{\leftmargin}{1.5em}
+  \setlength{\labelwidth}{1em}
+  \setlength{\labelsep}{0.5em} }
+ {\end{itemize}}
+
+\begin{document}
+
+\lecture{35 --- April 1, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+\section*{Badly Designed Tests}
+Today's lecture is about test design. We'll start by talking about test smells.
+This content is from Chapter 2 of the Meszaros book.
+
+A \emph{smell} is a symptom of a problem. ``Something is wrong here.''
+
+We are going to talk about three kinds of smells: project smells,
+behaviour smells, and code smells. Given the presence of a smell, you
+need to identify the root cause (ask ``why?'' a bunch of times; maybe
+5 is a good number) and do a cost/benefit analysis for fixing the
+underlying problem.
+
+\subsection*{Project Smells}
+These smells are the highest-level ones. They are usually detected
+by project managers, who are monitoring functionality, quality, resource
+usage, and cost. 
+
+\paragraph{Production Bugs.} (aka escapes) If your project has too many production
+bugs, something is wrong. The team needs to figure out why this is happening.
+Are there enough tests? Is something wrong with the development process? Are
+there enough development resources?
+
+\paragraph{Excessive Continuous Integration Failures.} If the CI system keeps on reporting
+failures, something's probably wrong. It might be buggy tests, or tests that are too expensive
+to maintain. Or, there might not be enough tests being run at commit time.
+
+\subsection*{Behaviour smells} 
+These typically manifest as compile errors or test failures.
+
+\paragraph{Fragile Tests.} These are the most common behaviour smells. One cause is the use of
+tests created through record/playback, which induces UI dependency. Possible root causes include:
+\begin{itemizep}
+\item interface sensitivity;
+\item behaviour sensitivity (only a few tests---relevant ones---should break per change);
+\item data sensitivity: tests might be relying on data stored in the system under test, or in a database;
+\item context sensitivity: e.g. the environment, including the time and date, or external devices.
+\end{itemizep}
+
+\paragraph{Assertion Roulette.} Another common behaviour smell. This manifests as difficult-to-diagnose
+continuous integration failures, where the error messages don't tell you enough to fix the problem.
+
+\paragraph{Erratic and Flaky Tests.} Sometimes you change nothing, but the test randomly fails. 
+Causes of this smell include interacting tests which share a fixture; test run wars; unrepeatable tests;
+dependencies on external systems which randomly get hosed; etc.
+
+\paragraph{Frequent Debugging.} Might be caused by insufficient test coverage, or insufficiently 
+fine-grained tests.
+
+\paragraph{Tests require Manual Intervention.} That's bad. Automate your tests!
+
+\paragraph{Slow Tests.} Tests should be fast. 30-second tests, for instance, are way, way too slow.
+
+\subsection*{Code Smells}
+These smells affect maintenance cost and are also early warning signs of behaviour smells.
+\begin{itemizep}
+\item Obscure Tests. (What's the meaning of that test?) Caused by poorly-named or poorly-implemented tests.
+Leads to buggy tests.
+\item Conditional Test Logic. Avoid whenever possible. Use {\tt fail()} to guard.
+\item Hard-Coded Test Data.
+\item Hard-to-test Code.
+\item Test Code Duplication.
+\item Test Logic in Production. Try to avoid putting test code in your production system.
+\end{itemizep}
+
+\end{document}

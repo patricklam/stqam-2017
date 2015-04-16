@@ -1,0 +1,225 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{4 --- January 12, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+\section*{About Testing}
+We can look at testing statically or dynamically.
+\paragraph{Static Testing} \hspace*{-1em} (ahead-of-time): this includes static analysis, which is typically automated and runs at compile time (or, say, nightly), as well human-driven static testing---walk-throughs (informal) and code inspection (formal).
+\paragraph{Dynamic Testing}  \hspace*{-1em}  (at run-time): observe program behaviour by executing it; includes black-box testing and white-box testing.
+
+Usually the word ``testing'' means \emph{dynamic testing}.
+
+\paragraph{Naughty words.} People like to talk about ``complete testing'', ``exhaustive testing'', and ``full coverage''. However, for many systems, the number of potential inputs is infinite. It's therefore impossible to completely test a nontrivial system, i.e. run it on all possible inputs. There are both practical limitations (time and cost) and theoretical limitations (i.e. the halting problem).
+
+In the absence of complete testing, we will define \emph{testing criteria} and evaluate test suites with them.
+
+\section*{Test cases}
+Informally, a \emph{test case} contains:
+\begin{itemize}
+\item what you feed to software; and
+\item what the software should output in response.
+\end{itemize}
+Here are two definitions to help evaluate how hard it might be to create 
+test cases.
+
+\begin{defn}
+\emph{Observability} is how easy it is to observe the system's behaviour, e.g.
+its outputs, effects on the environment, hardware and software.
+\end{defn}
+
+\begin{defn}
+\emph{Controlability} is how easy it is to provide the system with
+needed inputs and to get the system into the right state.
+\end{defn}
+
+\subsection*{Anatomy of a Test Case}
+Consider testing a cellphone from the ``off'' state:
+
+\begin{center}
+\begin{tabular}{cccc}
+\Large $\langle$ on $\rangle$ & \Large 1 519 888 4567 & \Large $\langle$ talk $\rangle$ &
+    \Large $\langle$ end $\rangle$ \\
+\scriptsize prefix values & \scriptsize test case values & \scriptsize verification values & \scriptsize exit codes \\
+&& \multicolumn{2}{c}{$\overline{\mbox{~~~~~postfix values~~~~~}}$}
+\end{tabular}
+\end{center}
+
+\begin{defn} ~\\[-2em]
+
+\begin{itemize} 
+\item \emph{Test Case Values}: input values necessary to complete some execution of the software.\\
+  (often called the test case itself)
+\item \emph{Expected Results}: result to be produced iff program satisfies intended behaviour on a test case.
+\item \emph{Prefix Values}: inputs to prepare software for test case values.
+\item \emph{Postfix Values}: inputs for software after test case values;
+\begin{itemize}
+\item \emph{verification values}: inputs to show results of test case values;
+\item \emph{exit commands}: inputs to terminate program or to return it to initial state.
+\end{itemize}
+\end{itemize}
+\end{defn}
+
+\begin{defn} ~\\[-2em]
+
+\begin{itemize}
+\item \emph{Test Case}: test case values, expected results, prefix values, and postfix values necessary to evaluate software under test.
+\item \emph{Test Set}: set of test cases.
+\item \emph{Executable Test Script}: test case prepared in a form to be executable automatically and which generates a report.
+\end{itemize}
+\end{defn}
+
+\section*{On Coverage}
+Ideally, we'd run the program on the whole input space and find bugs. 
+Unfortunately, such a plan is usually infeasible: there are too many potential
+inputs. 
+
+\paragraph{Key Idea: Coverage.} Find a reduced space and cover that space. 
+
+We hope that covering the reduced space is going to be more exhaustive than
+arbitrarily creating test cases. It at least tells us when we can plausibly
+stop testing.
+
+The following definition helps us evaluate coverage.
+
+\begin{defn}
+A \emph{test requirement} is a specific element of a (software)
+artifact that a test case must satisfy or cover.
+\end{defn}
+We write TR for a set of test requirements; a test set may cover a
+set of TRs.
+
+For instance, consider three ice cream cone flavours: vanilla,
+chocolate and mint. A possible test requirement would be to test
+one chocolate cone. (Volunteers?)
+
+Two software examples:
+\begin{itemize}
+\item cover all decisions in a program (branch coverage); each decision 
+gives two test requirements: branch is true; branch is false.
+\item each method must be called at least once; each method gives one test
+requirement.
+\end{itemize}
+
+\begin{defn}
+A \emph{coverage criterion} is a rule or collection of rules that impose
+test requirements on a test set.
+\end{defn}
+
+A test set may or may not satisfy a coverage criterion. The coverage
+criterion gives a recipe for generating TRs systemically.
+
+Returning to the ice cream example, a flavour criterion might be
+``cover all flavours'', and that would generate three TRs:
+\{flavour: chocolate, flavour: vanilla, flavour: mint\}.
+
+We can test an ice cream stand by running two test sets on it,
+for instance: test set 1 includes 3 chocolate cones and 1 vanilla cone,
+while test set 2 includes 1 chocolate cone, 1 vanilla cone, and 1
+mint cone.
+
+\begin{defn} 
+(Coverage). Given a set of test requirements TR for a coverage criterion
+$C$, a test set $T$ satisfies $C$ iff for every test requirement 
+$\mbox{tr} \in \mbox{TR}$, at least one $t \in T$ satisfies TR.
+\end{defn}
+
+
+
+\paragraph{Infeasible Test Requirements.} Sometimes, no test case will 
+satisfy a test requirement. For instance, dead code can make statement
+coverage infeasible, e.g.:
+
+\begin{verbatim}
+  if (false)
+    unreachableCall();
+\end{verbatim}
+
+or, a real example from the Linux kernel:
+\begin{verbatim}
+  while (0)
+    {local_irq_disable();}
+\end{verbatim}
+
+Hence, a criterion which says ``test every statement'' is going to be
+infeasible for many programs.
+
+\paragraph{Quantifying Coverage.} How good is a test set? It's great if it
+covers everything, but sometimes that's impossible.
+We can instead assign a number.
+\begin{defn}
+(Coverage Level). Given a set of test requirements TR and a test set $T$,
+the coverage level is the ratio of the number of test requirements
+satisfied by $T$ to the size of TR.
+\end{defn}
+
+Returning to our example, say TR = 
+\{flavour: chocolate, flavour: vanilla, flavour: mint\},
+and test set T1 contains \{3 chocolate, 1 vanilla\}, then the coverage level is
+``2/3'' or about 67\%.
+
+\section*{Subsumption}
+
+Sometimes one coverage criterion is strictly more powerful than another one:
+any test set that satisfies $C_1$ might automatically satisfy $C_2$.
+
+\begin{defn}
+Criteria subsumption: coverage criterion $C_1$ \emph{subsumes} $C_2$ iff
+\emph{every} test set that satisfies $C_1$ also satisfies $C_2$.
+\end{defn}
+
+Software example: branch coverage (``Edge Coverage'') subsumes
+statement coverage (``Node Coverage''). Which is stronger?
+
+\paragraph{Evaluating coverage criteria.} Subsumption is a rough guide for
+comparing criteria, but it's hard to use in practice. Consider also:
+\begin{enumerate}
+\item difficulty of generating test requirements;
+\item difficulty of generating tests;
+\item how well tests reveal faults.
+\end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{31 --- March 23, 2015}{Winter 2015}{Patrick Lam}{version 0.5}
+
+\section*{Functionality-based Input Domain Modelling}
+Use the intended functionality of system to create tests.
+
+\paragraph{containsElement example.} Consider again the
+method {\tt containsElement}, 
+which takes a list {\tt l} and an element {\tt e}. It behaves as
+follows. If {\tt l} or {\tt e} is null, throw a {\tt
+  NullPointerException}. Otherwise, return {\tt true} if {\tt l}
+contains {\tt e} and {\tt false} otherwise.
+
+Some possible characteristics:\\[4em]
+% number of occurences of e in l: 0, 1, > 1
+% element occurs first in list: t, f
+
+Notes:
+\begin{itemize}
+\item (+) might yield better test cases due to domain knowledge;
+\item (+) can create these models from specifications; don't need implementations;
+\item (-) may be hard to identify values and characeristics;
+\item (-) harder to generate tests from such an IDM.
+\end{itemize}
+
+\section*{Identifying Characteristics}
+Here are some possible sources of characteristics for functionality-based IDMs:
+\begin{itemize}
+\item preconditions and postconditions. e.g. 1) {\tt Object.wait()}
+  precondition: must hold lock; characteristic: lock held or not (the state
+includes the locks currently held). 2) {\tt TriTyp} triangle classification;
+we might construct characteristics based on the return value.
+\item relationships between variables, e.g. parameter aliasing;
+\item specifications contain more concentrated domain knowledge, so it is
+easier to extract characteristics from them, if they are available.
+\end{itemize}
+
+Using fewer blocks usually gives a more tractable partition, and
+it is easier to ensure that the partition is disjoint and complete.
+
+\section*{Choosing Blocks and Values}
+This part is the most creative in input space testing. Here are some tips
+for finding good values to test with. 
+
+Be sure to include:
+\begin{itemize}
+\item valid values and invalid values;
+\item boundary values and non-boundary values;
+\item special values (0, {\tt null}, empty set);
+\end{itemize}
+and choose your blocks and partitions appropriately; if you need more
+partitions, you can divide existing partitions, especially those containing
+valid values. Check that partitions are disjoint and complete.
+
+\paragraph{Trityp Example.} We discuss the standard triangle classification
+example again, which takes three side lengths as input.
+
+Interface-based try 1:
+
+\begin{center}
+\begin{tabular}{lccc}
+side 1 is: & $ > 0$ & $\qquad < 0$ & $\qquad= 0$ \\
+side 2 is: & $ > 0$ & $\qquad < 0$ & $\qquad= 0$ \\
+side 3 is: & $ > 0$ & $\qquad < 0$ & $\qquad= 0$ \\
+\end{tabular}
+\end{center}
+
+We might refine some partitions, assuming that we take integers as parameters:
+
+\begin{center}
+\begin{tabular}{lcccc}
+side 1 is: & $ > 1$ & $\qquad 1 \qquad$ & 0 & $\qquad < 0$ \\
+side 2 is: & $ > 1$ & $\qquad 1 \qquad$ & 0 & $\qquad < 0$ \\
+side 3 is: & $ > 1$ & $\qquad 1 \qquad$ & 0 & $\qquad < 0$ \\
+\end{tabular}
+\end{center}
+
+Generating tests for these partitions is straightforward.
+
+Functionality-based try (wrong):
+
+\begin{center}
+scalene $\qquad$ isoceles $\qquad$ equilateral $\qquad$ invalid 
+\end{center}
+
+Unfortunately, equilateral triangles are also isoceles, so we should instead use:
+
+\begin{center}
+scalene $\qquad$ isoceles, not equilateral $\qquad$ equilateral $\qquad$ invalid 
+\end{center}
+
+Observe that it's not completely straightforward to generate tests
+from functionality-based partitions. We can, however, generate the following tests:
+
+\begin{center}
+$(4, 5, 6)$ $\qquad$ $(3, 3, 4)$ $\qquad$ $(3,3,3)$ $\qquad$ $(3, 4, 8)$
+\end{center}
+
+\paragraph{Alternate approach.} Instead of multiple blocks (like 4 in the above
+example), use T/F characteristics (e.g. isEquilateral, etc). Then
+disjointness and completeness are guaranteed, but you get more characteristics.
+
+\paragraph{Multiple IDMs.} We can use one IDM for valid values and
+a second IDM for invalid values, then differentially refine or cover
+these IDMs.
+
+\paragraph{Verifying IDMs.} Some tips:
+
+\begin{itemize}
+\item ``Are we missing anything we could include?''
+\item check completeness and disjointness; if using multiple IDMs, only the
+sum of the IDMs needs to be complete.
+\end{itemize}
+
+\end{document}

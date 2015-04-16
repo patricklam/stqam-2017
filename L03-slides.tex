@@ -1,0 +1,149 @@
+\documentclass{beamer}
+
+\usetheme{Boadilla}
+
+%\includeonlyframes{current}
+
+\usepackage{times}
+\usefonttheme{structurebold}
+\usepackage{listings}
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+\usetikzlibrary{shapes}
+\usepackage{amsmath,amssymb}
+\usepackage{rotating}
+\usepackage{ulem}
+\usepackage{listings}
+\usepackage{enumerate}
+
+%\setbeamercovered{dynamic}
+\setbeamertemplate{footline}[page number]{}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{structurebold}
+
+\title{Software Testing, Quality Assurance \& Maintenance---Lecture 3}
+\author{Patrick Lam\\University of Waterloo}
+\date{January 9, 2015}
+
+\colorlet{redshaded}{red!25!bg}
+\colorlet{shaded}{black!25!bg}
+\colorlet{shadedshaded}{black!10!bg}
+\colorlet{blackshaded}{black!40!bg}
+
+\colorlet{darkred}{red!80!black}
+\colorlet{darkblue}{blue!80!black}
+\colorlet{darkgreen}{green!80!black}
+
+\newcommand{\rot}[1]{\rotatebox{90}{\mbox{#1}}}
+\newcommand{\gray}[1]{\mbox{#1}}
+
+\newenvironment{changemargin}[1]{% 
+  \begin{list}{}{% 
+    \setlength{\topsep}{0pt}% 
+    \setlength{\leftmargin}{#1}% 
+    \setlength{\rightmargin}{1em}
+    \setlength{\listparindent}{\parindent}% 
+    \setlength{\itemindent}{\parindent}% 
+    \setlength{\parsep}{\parskip}% 
+  }% 
+  \item[]}{\end{list}}
+
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Plan}
+
+  \begin{changemargin}{2cm}
+  More examples on faults, errors and failures:
+  \begin{itemize}
+  \item numZero example (again);
+  \item assignment 1-like exercise for {\tt findLast};
+  \item testing line intersection algorithm
+  \end{itemize}
+  \end{changemargin}
+\end{frame}
+  
+\begin{frame}
+
+  \begin{changemargin}{2em}
+
+\begin{alltt}
+public static numZero(int[] x) \{ \\
+\quad int count = 0; \\
+\quad for (int i = 1; i < x.length; i++) \{ \\
+\qquad if (x[i] == 0) count++; \\
+\quad \} \\
+\quad return count;\\
+\}
+\end{alltt}
+  \end{changemargin}
+
+\end{frame}
+
+\begin{frame}[fragile]
+
+    \begin{lstlisting}
+    static public int findLast(int[] x, int y) {
+        for (int i = x.length - 1; i > 0 ; i--) {
+            if (x[i] == y) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Test
+    public void testFindLast() {
+        int[] x = new int[] {2, 3, 5};
+        assertEquals(0, FindLast.findLast(x, 2));
+    }
+    \end{lstlisting}
+  
+\end{frame}
+
+\begin{frame}
+
+  \frametitle{Exercise: Faults}
+
+  \begin{changemargin}{1cm}
+    Read the faulty program {\tt findLast}, which 
+    includes a test case exhibiting a failure.\\[1em]
+
+    Answer the following questions:
+    \begin{enumerate}[(a)]
+    \item Identify the fault, and fix it.
+    \item If possible, identify a test case that does not execute the fault.
+    \item If possible, identify a test case that executes the fault, but does not result in an error state.
+    \item If possible, identify a test case that results in an error, but not a failure. (Hint: PC)
+    \item For the given test case, identify the first error state. Be sure to describe the complete state.
+      \end{enumerate}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{lstlisting}[language=Python]
+  class LineSegment:
+    def __init__(self, x1, x2):
+        self.x1 = x1; self.x2 = x2;
+
+    def intersect(a, b):
+        return (a.x1 < b.x2) & (a.x2 > b.x1);
+  \end{lstlisting}
+  
+\end{frame}
+
+\end{document}

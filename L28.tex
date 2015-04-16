@@ -1,0 +1,220 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+\begin{document}
+
+\lecture{28 --- March 16, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+\section*{Reporting Bugs}
+
+Goal of reporting bugs:
+
+\begin{quote}
+  Get bugs fixed. Which bugs? The most important ones---the right ones.
+\end{quote}
+
+How?\footnote{\url{http://blog.cleverelephant.ca/2010/03/how-to-get-your-bug-fixed.html}}\footnote{\url{http://blog.threepress.org/2009/11/17/how-to-get-your-bug-fixed/}}\\[7em]
+
+% sell the bug: 
+%  * developers don't necessarily have to listen to bug reporters
+%  * make life easy for them or catch their interest
+%     - submit a patch
+%     - post the bug in the right place
+%     - make bug easily reproducible
+%     - maximize its generality/simplify report as much as possible
+%     - be responsibe to further queries
+%  * overcome their objections to fixing the bug
+
+% provide a clear report, be polite (use good tone), provide a test case.
+
+\subsection*{Properties of Important Bugs}
+
+\squishlist
+\item Bug is sufficiently general to affect many users (easily reproducible).
+\item Bug has severe consequences (crashes, dataloss).
+\item Bug is new to most recent version.
+\item Bug has security implications.
+\squishend
+
+\subsection*{Reproducibility}
+
+Developers can't fix problems they can't observe. 
+\squishlist
+\item Be maximally
+specific in describing steps to reproduce.
+\item Write the steps down as
+soon as possible, before you forget. 
+\item Try to find a minimal
+testcase that demonstrates the problem.
+\squishend
+
+\clearpage
+\subsection*{Anatomy of a Bug Report}
+Bug report formats are fairly standard. Here are some fields
+in a Bugzilla report.
+
+Standard bookkeeping fields:
+\squishlist
+\item Bug id: automatically generated number
+\item Reporter: usually an email address
+\item Product, Version, Component: helps direct the bug to the right developers
+\item Platform, OS: e.g. PC/Linux, or Mac/Mac OS X 10.5.
+\item Severity: based on consequences; examples: blocker, critical, normal, trivial, enhancement
+\item Assign to: person responsible for bug
+\item CC: list of people who track bug changes
+\item Keywords: e.g. crash, intl, patch, security
+\item Depends on/blocks: relationships between bugs
+\item URL: (especially applicable for browsers)
+\item Attachments: e.g. test cases/input files which exhibit the bug
+\squishend
+
+\paragraph{Summary.} Perhaps the most critical field: a one-line recap of the bug. Enables searching for and judgement of the bug.
+
+Examples (some good, some bad):
+\squishlist
+\item ``RPM 4 installer crashes if launched on Red Hat 6.2 (RPM 3) system''
+\item ``Back button does not work''
+\item ``When memory cache disabled, no-store pages not displayed at all''
+\item ``History and bookmarks completely inoperable''
+\item ``Can't install''
+\squishend
+
+\paragraph{Description.} Should be a complete description of the bug, 
+including:
+
+\squishlist
+\item Overview: expanded summary, e.g. ``Drag-selecting any page crashes 
+Mac builds in NSGetFactory''.
+\item Steps to Reproduce (key!): minimized easy-to-follow steps to trigger
+the bug; 1) try to reproduce the bug based on the steps you report; 2)
+try to describe the steps to that anyone (like the developer) can reproduce
+the bug. 
+
+Be specific: instead of ``save the document'', 
+``File \textgreater~ Save, select foo from dropdown, \ldots''.
+\item Actual Results: what you see when you perform the steps to reproduce.
+e.g. ``Application crashes. Stack trace included.''
+\item Expected Results: what you think is correct
+\item Build Date and Platform: on development software, helps find the bug;
+include additional builds and platforms the bug might apply to.
+\squishend
+
+\paragraph{Lifecycle-related fields.} Some fields summarize the
+current state of the bug.
+\squishlist
+\item Comments: either by the assigned developer, original reporter, or
+interested bystanders. Often people give additional information (``also happens
+on latest build'') or help diagnose the problem.
+\item Status: e.g. UNCONFIRMED, NEW, REOPENED, VERIFIED
+\item Priority: for internal use by development team.
+\squishend
+
+\subsection*{Properties of Good Bug Reports}
+\squishlist
+\item Reported in the database.
+\item Simple: one bug per report.
+\item Understandable, minimal, and generalizable.
+\item Reproducible.
+\item Non-judgemental. ``The developers are all morons''.
+\item Not a duplicate.
+\squishend
+
+\subsection*{Bug Triage}
+Some of the fields we've seen help in identifying the most
+important bugs (which ones?). Consider this approach for 
+assigning a single number to a bug which summarizes its
+importants (``user pain''):
+
+\begin{center}
+\url{http://lostgarden.com/2008/05/improving-bug-triage-with-user-pain.html}
+\end{center}
+
+\subsection*{Research: What Makes a Good Bug Report?}
+Betternburg et al performed a survey asking experienced developers to
+rate bug reports and to identify important information in
+them~\cite{bettenburg-fse-2008}, published in Foundations of Software
+Engineering 2008.
+
+I recommend consulting the full paper. But the executive summary is
+that developers rated steps to reproduce (83\%), stack traces (57\%)
+and test cases (51\%) as most useful. Furthermore, by examining data
+from Apache projects, Eclipse, and Mozilla, they found that bug
+reports with stack traces get fixed sooner, and that bug reports that
+are easier to read have lower lifetimes. Code samples also help increase
+the change that a bug report gets fixed.
+
+%% \subsection*{What to Report?}
+%% Which bugs to report and fix (p127)
+
+%% \subsection*{Biases}
+%% Things that bias bug reports (BugAdvocacy.pdf, p132).
+
+\nocite{kaner:_bug_advoc}
+\bibliographystyle{alpha}
+\bibliography{L28}
+
+\end{document}

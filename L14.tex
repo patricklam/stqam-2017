@@ -1,0 +1,469 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{amssymb}
+\usetikzlibrary{arrows,automata,shapes}
+
+\lstset{basicstyle=\ttfamily \scriptsize,
+  basicstyle=\ttfamily,
+   columns=fullflexible,
+   breaklines=true,
+   numbers=left,
+   numberstyle=\scriptsize,
+   stepnumber=1,
+   mathescape=false,
+   tabsize=2,
+   showstringspaces=false
+}
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]''
+}
+
+
+\begin{document}
+
+\lecture{14 --- February 4, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+Recall that we've been discussing beliefs. Here are a couple of beliefs
+that are worthwhile to check. (examples courtesy Dawson Engler.)
+
+\paragraph{Redundancy Checking.} 1) Code ought to do something. So,
+when you have code that doesn't do anything, that's suspicious. Look
+for identity operations, e.g.
+\[ {\tt x = x}, ~ {\tt 1 * y}, ~ {\tt x \& x}, ~ {\tt x | x}. \]
+Or, a longer example:
+\begin{lstlisting}[language=C]
+    /* 2.4.5-ac8/net/appletalk/aarp.c */
+    da.s_node = sa.s_node;
+    da.s_net = da.s_net;
+\end{lstlisting}
+
+Also, look for unread writes:
+\begin{lstlisting}[language=C]
+    for (entry=priv->lec_arp_tables[i]; 
+         entry != NULL; entry=next) {
+      next = entry->next; // never read!
+      ...
+    }
+\end{lstlisting} 
+Redundancy suggests conceptual confusion.
+
+
+%\section*{Inferring beliefs}
+%If we are to verify beliefs about the code (either MAY or MUST), we first need to get a set of beliefs somehow.
+
+
+So far, we've talked about MUST-beliefs; violations are clearly wrong (in some sense).
+Let's examine MAY beliefs next. For such beliefs, we need more evidence to convict the program.
+
+\paragraph{Process for verifying MAY beliefs.} We proceed as follows:
+\begin{enumerate}
+\item    Record every successful MAY-belief check as ``check''.
+\item    Record every unsucessful belief check as ``error''.
+\item    Rank errors based on ``check'' : ``error'' ratio.
+\end{enumerate}
+Most likely errors occur when ``check'' is large, ``error'' small.
+
+\paragraph{Example.} One example of a belief is use-after-free: 
+ \begin{lstlisting}[language=C]
+    free(p);
+    print(*p);
+ \end{lstlisting}
+That particular case is a MUST-belief. 
+However, other resources are freed by custom (undocumented) free functions.
+It's hard to get a list of what is a free function and what isn't.
+So, let's derive them behaviourally.
+
+\paragraph{Inferring beliefs: finding custom free functions.}
+The key idea is:
+    if pointer {\tt p} is not used after calling {\tt foo(p)},
+    then derive a MAY belief that {\tt foo(p)} frees {\tt p}.
+
+OK, so which functions are free functions? Well, just assume all functions free all arguments:
+\begin{itemize}
+\item emit ``check'' at every call site;
+\item emit ``error'' at every use.
+\end{itemize}
+(in reality, filter functions with suggestive names).
+
+Putting that into practice,
+we might observe:
+
+\begin{center}
+\begin{tabular}{l|l|l|l|l|l}
+\begin{minipage}{5em}
+foo(p)\\
+*p = x;
+\end{minipage} &
+\begin{minipage}{5em}
+foo(p)\\
+*p = x;
+\end{minipage} &
+\begin{minipage}{5em}
+foo(p)\\
+*p = x;
+\end{minipage} &
+\begin{minipage}{5em}
+bar(p)\\
+p = 0;
+\end{minipage} &
+\begin{minipage}{5em}
+bar(p)\\
+p=0;
+\end{minipage} &
+\begin{minipage}{5em}
+bar(p)\\
+*p = x;
+\end{minipage} 
+\end{tabular}
+\end{center}
+
+We would then rank {\tt bar}'s error first.
+Plausible results might be: 23 free errors, 11 false positives.
+
+
+\paragraph{Inferring beliefs: finding routines that may return {\tt NULL}.}
+The situation: we want to know which routines may return {\tt NULL}.
+Can we use static analysis to find out?
+\squishlist
+      \item sadly, this is difficult to know statically (``{\tt return p->next;}''?) and,
+      \item we get false positives: some functions return {\tt NULL} under special cases only.
+\squishend
+
+Instead, let's observe what the programmer does.
+Again, rank errors based on checks vs non-checks.
+As a first approximation, assume {\bf all} functions can return {\tt NULL}.
+\squishlist
+  \item if pointer checked before use: emit ``check'';
+  \item if pointer used before check: emit ``error''.
+\squishend
+
+This time, we might observe:
+
+\begin{center}
+\begin{tabular}{l|l|l|l}
+\begin{minipage}{6em}
+p = bar(...);\\
+*p = x;
+\end{minipage} &
+\begin{minipage}{7em}
+p = bar(...);\\
+if (!p) return;\\
+*p = x;
+\end{minipage} &\begin{minipage}{7em}
+p = bar(...);\\
+if (!p) return;\\
+*p = x;
+\end{minipage} &\begin{minipage}{7em}
+p = bar(...);\\
+if (!p) return;\\
+*p = x;
+\end{minipage}
+\end{tabular}
+\end{center}
+
+Again, sort errors based on the ``check'':``error'' ratio.
+
+Plausible results: 152 free errors, 16 false positives.
+
+\newpage
+\subsection*{General statistical technique}
+When we write ``a(); \ldots b();'', we mean a MAY-belief that a() is followed by b().
+We don't actually know that this is a valid belief. It's a hypothesis, and we'll try it out.
+Algorithm: 
+\vspace*{-1em}
+\squishlist
+\item assume every {\tt a}--{\tt b} is a valid pair;
+\item emit ``check'' for each path with ``a()'' and then ``b()'';
+\item emit ``error'' for each path with ``a()'' and no ``b()''.
+\squishend
+(actually, prefilter functions that look paired).
+
+Consider:
+
+{\small
+\begin{tabular}{l|l|l}
+\begin{minipage}{10em}
+foo(p, \ldots);\\
+bar(p, \ldots); // check 
+\end{minipage} &
+\begin{minipage}{10em}
+foo(p, \ldots);\\
+bar(p, \ldots); // check 
+\end{minipage} &
+\begin{minipage}{12em}
+foo(p, \ldots);\\
+// error: foo, no bar!
+\end{minipage}
+\end{tabular}
+}
+
+This applies to the course project as well.
+
+\begin{tabular}{ll}
+\begin{minipage}{10em}
+\scriptsize
+\begin{lstlisting}
+void scope1() {
+ A(); B(); C(); D();
+}
+
+void scope2() {
+ A(); C(); D();
+}
+
+void scope3() {
+ A(); B();
+}
+
+void scope4() {
+ B(); D(); scope1();
+}
+
+void scope5() {
+ B(); D(); A();
+}
+
+void scope6() {
+ B(); D();
+}
+\end{lstlisting}
+\end{minipage} &\begin{minipage}{30em}
+``A() and B() must be paired'':\\
+either A() then B() or B() then A().\\[2em]
+\begin{tabbing}
+{\bf Support} =  \= \# times a pair of functions appears together.\\
+\> \hspace*{2em} support(\{A,B\})=3
+\end{tabbing}
+~\\[1em]
+{\bf Confidence(\{A,B\},\{A\}}) = \\ \hspace*{2em} support(\{A,B\})/support(\{A\}) = 3/4
+\end{minipage}
+\end{tabular}
+
+Sample output for support threshold~3, confidence threshold 65\% (intra-procedural analysis):
+{\small
+\squishlist
+\item bug:A in scope2, pair: (A B), support:~3, confidence: 75.00\%
+\item bug:A in scope3, pair: (A D), support:~3, confidence: 75.00\%
+\item bug:B in scope3, pair: (B D), support:~4, confidence: 80.00\%
+\item bug:D in scope2, pair: (B D), support:~4, confidence: 80.00\%
+\squishend
+}
+
+The point is to find examples like the one from {\tt cmpci.c}
+where there's a {\tt lock\_kernel()} call, but, on an exceptional path, no
+{\tt unlock\_kernel()} call.
+\vspace*{-1em}
+
+\paragraph{Summary: Belief Analysis.}
+      We don't know what the right spec is.
+      So, look for contradictions.
+
+\squishlist
+\item      MUST-beliefs: contradictions = errors!
+\item      MAY-beliefs: pretend they're MUST, rank by confidence.
+\squishend
+(A key assumption behind this belief analysis technique: most of the code is correct.)
+
+\paragraph{Further references.}
+Dawson~R. Engler, David Yu Chen, Seth Hallem, Andy Chou and Benjamin Chelf.
+``Bugs as Deviant Behaviors: A general approach to inferring errors in systems code''.
+In SOSP '01.
+
+Dawson~R. Engler, Benjamin Chelf, Andy Chou, and Seth Hallem.
+``Checking system rules using system-specific, programmer-written
+  compiler extensions''.
+In OSDI '00 (best paper).
+\url{www.stanford.edu/~engler/mc-osdi.pdf}
+
+Junfeng Yang, Can Sar and Dawson Engler.
+``eXplode: a Lightweight, General system for Finding Serious Storage System Errors''.
+In OSDI'06.
+\url{www.stanford.edu/~engler/explode-osdi06.pdf}
+
+\section*{Using Linters}
+We will also talk about linters in this lecture, based on Jamie Wong's blog post \url{jamie-wong.com/2015/02/02/linters-as-invariants/}.
+
+\paragraph{First there was C.}
+In statically-typed languages, like C,
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+int main() {
+  printf("%d\n", num);
+  return 0;
+}
+\end{lstlisting}
+the compiler saves you from yourself.
+The guaranteed invariant:
+\begin{center}
+``if code compiles, all symbols resolve.''
+\end{center}
+
+\paragraph{Less-nice languages.}
+OK, so you try to run that in JavaScript and it crashes right away.
+Invariant?
+\begin{center}
+ ``if code runs, all symbols resolve?''
+\end{center}
+
+But what about this:
+\begin{lstlisting}[language=JavaScript]
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+\end{lstlisting}
+Nope! The above invariant doesn't work.
+
+OK, what about this invariant:
+\begin{center}
+``if code runs without crashing, all symbols referenced in the code path executed resolve?''
+\end{center}
+
+Nope!
+\begin{lstlisting}[language=JavaScript]
+function main() {
+  try {
+    console.log(num);
+  } catch (err) {
+    console.log("nothing to see here");
+  }
+}
+
+main();
+\end{lstlisting}
+
+So, when you're working in JavaScript and maintaining old code, you always have to
+deduce:
+\squishlist
+\item is this variable defined?
+\item is this variable always defined?
+\item do I need to load a script to define that variable?
+\squishend
+We have computers. They're powerful. Why is this the developer's problem?!
+
+\paragraph{Solution: Linters.}
+\begin{lstlisting}[language=JavaScript]
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+\end{lstlisting}
+
+Now:
+\begin{verbatim}
+$ nodejs /usr/local/lib/node_modules/jshint/bin/jshint --config jshintrc foo.js
+foo.js: line 5, col 17, 'num' is not defined.
+
+1 error
+\end{verbatim}
+
+\vspace*{-1em}
+\paragraph{Invariant:}~\\
+
+\begin{center}
+``If code passes JSHint, all top-level symbols resolve.''
+\end{center}
+
+\paragraph{Strengthening the Invariant.} Can we do better? How about adding a pre-commit hook?
+\begin{center}
+``If code is checked-in and commit hook ran,\\ all top-level symbols resolve.''
+\end{center}
+Of course, sometimes the commit hook didn't run. Better yet:
+\squishlist
+\item Block deploys on test failures.
+\squishend
+
+\paragraph{Better invariant.}~\\[1em]
+\begin{center}
+``If code is deployed,\\ all top-level symbols resolve.''
+\end{center}
+
+\paragraph{Even better yet.}
+It is hard to tell whether code is deployed or not.
+Use git feature branches, merge when deployed.
+\begin{center}
+``If code is in master,\\ all top-level symbols resolve.''
+\end{center}
+
+\end{document}

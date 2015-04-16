@@ -1,0 +1,239 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage{hyperref}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newtheorem{claim}{Claim}
+\newcommand{\strue}{\mbox{\scriptsize \sf true}}
+\newcommand{\sfalse}{\mbox{\scriptsize \sf false}}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+%\renewcommand{\baselinestretch}{1.25}
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+\begin{document}
+
+\lecture{26 --- March 11, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+\paragraph{Determination Example.}
+Let's look at one of the examples from last time again.
+\[ p : (\neg a \oplus b) \rightarrow c \]
+% other example was p : (x \wedge y) \leftrightarrow (z \oplus w)
+We construct a truth table as follows:
+\[ 
+\begin{array}{ccccc}
+a & b & \neg a \oplus b & c & p \\
+T & T & T & T & T \\
+T & T & T & F & F \\
+T & T & F & T & F \\
+T & F & F & F & T \\
+F & T & F & T & F \\
+F & T & F & F & T \\
+F & F & T & T & T \\
+F & F & T & F & F
+\end{array}
+\]
+Note that we use certain patterns to see whether a clause determines $p$ in 
+the truth table. For $c$, we check adjacent rows in the truth table.
+For $b$, we check pairs of rows separated by one row; and for $a$ we check
+one from the top half and one from the bottom half.
+
+\section*{Symbolically Making a Clause Determine a Predicate}
+We've seen the brute-force way to figure out when a clause determines
+a predicate. It wouldn't scale, since truth tables grow exponentially.
+There are also symbolic ways of figuring out when a clause determines
+a predicate; here's one way that the textbook presents.
+
+For predicate $p$ and clause $c$,
+\begin{itemize}
+\item let $p_{c=\strue}$ represent $p$ with $c$ replaced by \strue;
+\item and $p_{c=\sfalse}$ represent $p$ with $c$ replaced by \sfalse.
+\end{itemize}
+Assume that $c$ occurs exactly once in $p$, hence 0 times in $p_{c=\strue}$
+and $p_{c=\sfalse}$.
+
+Construct
+\[ p_c = p_{c=\strue} \oplus p_{c=\sfalse}. \]
+
+\begin{claim}
+$p_c$ describes conditions under which $c$ determine $p$. That is,
+if $p_c$ evaluates to \true, then $c$ determines $p$; if $p_c$ evaluates to 
+\false, then $c$ does not determine $p$.
+\end{claim}
+\newpage
+
+Let's look at some examples.
+
+\begin{enumerate}
+\item $p = a \vee b$:
+\begin{eqnarray*}
+p_a = p_{a=\strue} \oplus p_{a=\sfalse} &=& (\true \vee b) \oplus (\false \vee b) \\
+&=& \true \oplus b \\
+&=& \neg b
+\end{eqnarray*}
+We see that $a$ determines $p$ precisely when $b$ is false. Symmetrically, $b$ determines $p$ when $a$ is false.
+\item $p = a \wedge b$:
+\begin{eqnarray*}
+p_a = p_{a=\strue} \oplus p_{a=\sfalse} &=& (\true \wedge b) \oplus (\false \wedge b) \\
+&=& b \oplus \false \\
+&=& b
+\end{eqnarray*}
+We need $b$ to be \true~ for $a$ to determine $p$; symmetrically for $a$.
+\item $p = a \leftrightarrow b$:
+\begin{eqnarray*}
+p_a = p_{a=\strue} \oplus p_{a=\sfalse} &=& (\true \leftrightarrow b) \oplus (\false \leftrightarrow b) \\
+&=& b \oplus \neg b \\
+&=& \true
+\end{eqnarray*}
+In this case, $a$ always determines $p$ regardless of $b$.
+\item $p = a \wedge (b \vee c)$:
+\begin{eqnarray*}
+p_b &=& p_{b=\strue} \oplus p_{b=\sfalse} \\
+&=& (a \wedge (\true \vee c)) \oplus (a \wedge (\false \vee c)) \\
+&=& (a \wedge \true) \oplus (a \wedge c) = a \oplus (a \wedge c) \\
+&=& a \wedge \neg c
+\end{eqnarray*}
+\end{enumerate}
+
+Why does this construction work? Intuitively:
+\begin{itemize}
+\item $c$ determines $p$ when setting $c$ to true causes one value of $p$
+and setting $c$ to false causes the other value.
+\item Everything else should be free to change.
+\item Exclusive-or is true when its inputs differ.
+\item $p_{c = \strue}$ is basically setting $c$ to \true, $p_{c = \sfalse}$
+ is setting $c$ to false.
+\end{itemize}
+
+ACC is feasible for a clause $c$ 
+if there is a truth assignment to $p$ which makes $p_c$ true.
+If $c$ can never determine $p$, then $c$ is redundant with respect to $p$;
+that means that we could write $p$ without using $c$, so something is 
+probably wrong somewhere.
+
+\section*{Active Clause Coverage Criteria}
+
+\paragraph{Minor Clauses.} The ambiguity in our definition of active clause
+coverage stems from our looseness about the minor clauses. All we've
+said so far is that the major clause has to determine the predicate
+in each test requirement. Consider the following example:
+\[ p = a \wedge (b \vee c), \]
+and let $a$ be the major clause. Then does the following test suite, 
+\[ \langle a:\true, b:{\bf \false}, c:\true \rangle \qquad
+\langle a:\false, b:{\bf \true}, c: \true \rangle \]
+satisfy ACC? Only on $a$ (but you need more cases for $b$ and $c$).
+
+We will briefly describe three flavours of ACC: General, Correlated and
+Restricted. The textbook goes into a lot of detail about these flavours,
+but the differences don't seem important in practice.
+
+\begin{crit}
+{\bf General Active Clause Coverage} (GACC). For each $p \in P$ and letting
+each clause $c_i \in C_p$ be a major clause, choose minor clause values
+$c_j$ such that $c_i$ determines $p$. TR contains two test requirements
+for each $c_i$: $c_i$ evaluates to true and $c_i$ evaluates to false.
+Note that the $c_j$s may be different when $c_i$ evaluates to true and
+$c_i$ evaluates to false---there are no restrictions on the $c_j$.
+\end{crit}
+
+The above test suite does not satisfy GACC; it does not meet the
+requirements for $c$.
+
+Unfortunately, GACC does not subsume PC; it is more
+like CC (and obviously subsumes it).
+
+\begin{crit}
+{\bf Correlated Active Clause Coverage} (CACC). For each $p \in P$ and
+letting each clause $c_i$ be major, choose minor clause values
+for $c_j$ such that $c_i$ determines $p$. TR contains two requirements
+for each $c_i$: $c_i$ evaluates to true and $c_i$ evaluates to false.
+Furthermore, the values chosen for $c_j$ must cause $p$ to be true for
+one value of $c_i$ and false for the other.
+\end{crit}
+
+To satisfy CACC, you have to satisfy GACC, plus, for each clause,
+you must make $p$ true and false.
+
+Last variation: Restricted Active Clause Coverage: ensure that
+$c_j$s are always the same for each $c_i$. 
+
+\begin{crit}
+{\bf Restricted Active Clause Coverage} (RACC). For each $p \in P$ and
+letting each clause $c_i$ be major, choose minor clause values
+for $c_j$ such that $c_i$ determines $p$. TR contains two requirements
+for each $c_i$: $c_i$ evaluates to true and $c_i$ evaluates to false.
+The values for each $c_j$ must be the same when $c_i$ is true and
+when $c_i$ is false.
+\end{crit}
+
+Key point: must have the same minor clause values in the test set for
+each major clause. It is therefore harder to satisfy RACC than CACC.
+
+
+\paragraph{Example where GACC does not subsume PC.} ~ \\[3em]
+
+% p = a \leftrightarrow b.
+% test set <a:T, b:T> (p = T); <a:F, b:F> (p = T) satisfies GACC but not PC.
+
+
+\end{document}

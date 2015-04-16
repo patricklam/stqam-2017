@@ -1,0 +1,260 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{amssymb}
+\usetikzlibrary{arrows,automata,shapes}
+
+\lstset{basicstyle=\ttfamily \scriptsize,
+  basicstyle=\ttfamily,
+   columns=fullflexible,
+   breaklines=true,
+   numbers=left,
+   numberstyle=\scriptsize,
+   stepnumber=1,
+   mathescape=false,
+   tabsize=2,
+   showstringspaces=false
+}
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+
+
+\begin{document}
+
+\lecture{13 --- February 2, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+We'll now shift to the topic of bug-finding. This is generally useful to know
+about, and is relevant to your course project.
+
+A bug has got to be a violation of some specification. This might be
+a language-level specification (e.g. don't dereference null pointers), or it
+may be specific to an API that you are using.
+
+For instance, you may have a method:
+\begin{lstlisting}[numbers=none]
+  // callers must acquire the lock
+  static int reset_hardware(...) { ... }
+\end{lstlisting}
+\vspace*{-1em}
+and then a caller in the Linux kernel:
+\begin{lstlisting}[numbers=none]
+  // linux/drivers/scsi/in2000.c:
+  static int in2000_bus_reset(...) 
+  {
+    ...
+    // no lock acquisition => a bug!
+    reset_hardware(...);
+    ...
+  }
+\end{lstlisting}
+
+Examples of specifications:
+\squishlist
+\item {\tt len < 100};
+\item {\tt x = 16*y + 4*z + 3};
+\item {\tt fclose()} must be called after {\tt fopen()};
+\item and example from above: callers of {\tt reset\_hardware()} must acquire lock.
+\squishend
+
+How do you get specifications? Well, programming languages come with some
+specifications applicable to all programs in that language. Or, you can have
+developers write specifications (an uphill battle). Or, you can automatically
+infer specifications from source code, execution traces, comments, etc.
+This includes static tools like Coverity, iComment, PR-Miner, etc. It also
+includes dynamic tools like Daikon, DIDUCE, etc.
+
+\paragraph{More on Coverity.}
+We talked a bit about Coverity last time. It is a commercial product
+which can find many bugs in large (millions of lines) programs; it is
+therefore a leading company in building bug detection tools. Clients
+(900+) include organizations such as Blackberry, Yahoo, Mozilla,
+MySQL, McAfee, ECI Telecom, Samsung, Siemens, Synopsys, NetApp,
+Akamai, etc. These include domains including EDA, storage, security,
+networking, government (NASA, JPL), embedded systems, business
+applications, operating systems, and open source software.  We have
+access to Coverity for this course, but there's also a free trial:
+\begin{center}
+  \url{http://softwareintegrity.coverity.com/FreeTrialWebSite.html}
+\end{center}
+
+\paragraph{Mistaken beliefs.} Coverity reported encounters with a number
+of mistaken beliefs about how languages work:
+
+``No, the loop will go through once!''
+\begin{lstlisting}
+  for (i = 1; i < 0; i++) {
+    // ... this code is dead ...
+  }
+\end{lstlisting}
+
+``No, {\tt \&\&} is `or'!''
+\begin{lstlisting}
+  void *foo(void *p, void *q) {
+    if (!p && !q)
+      return 0;
+  }
+\end{lstlisting}
+
+``No, ANSI lets you write 1 past end of the array!''
+\begin{lstlisting}
+  unsigned p[4]; p[4] = 1;
+\end{lstlisting}
+(``We'll just have to agree to disagree.'')
+
+\paragraph{Goal.} Coverity aims to find as many serious bugs as possible.
+The problem is: what's the definition of a bug? Is there objective truth?
+If there is, Coverity doesn't know it.
+
+\squishlist
+\item Contradictions: It attempts to find lies by cross-examining; contradictions
+indicate errors.
+\item Deviance: It assumes programs are mostly-correct and tries to infer
+  correct behaviour from that assumption. If 1 person does X, then maybe it's right,
+  or maybe that was just a coincidence. But if 1000 people do X and 1 person does Y,
+  the 1 person is probably wrong.
+\squishend
+
+Crucially: a contradiction constitutes an error, even without knowing
+the correct belief.
+
+\paragraph{MUST-beliefs versus MAY-beliefs.} We differentiate between MUST-beliefs
+(related to contradictions) and MAY-beliefs (related to deviance).
+
+MUST-beliefs are inferred from acts that imply beliefs about the code.
+For instance:
+\begin{lstlisting}
+  x = *p / z; // MUST: p not null
+               // MUST: z != 0
+  unlock(l);   // MUST: l acquired
+  x++;          // MUST: x not protected by l
+\end{lstlisting}
+
+MAY-beliefs, on the other hand, could be coincidental.
+
+\begin{center}
+\begin{tabular}{l|l|l|l|l}
+\begin{minipage}{5em}
+  A();\\
+  // ...\\
+  B();
+\end{minipage} &
+\begin{minipage}{5em}
+  A();\\
+  // ...\\
+  B();
+\end{minipage} &
+\begin{minipage}{5em}
+  A();\\
+  // ...\\
+  B();
+\end{minipage} &
+\begin{minipage}{5em}
+  A();\\
+  // ...\\
+  B();
+\end{minipage} &
+\begin{minipage}{20em}
+// MAY: A() and B() are paired.
+\end{minipage} 
+\end{tabular}
+\end{center}
+We can check them as if they're MUST-beliefs and then rank errors
+by belief confidence (more on that later).
+
+\paragraph{MUST-belief examples.} Let's look first at a couple of
+MUST-beliefs about null pointers.
+
+\squishlist
+\item If I write {\tt *p} in a C program, I'm stating a MUST-belief that
+  {\tt p} had better not be {\tt NULL}.
+\item If I write the check {\tt p == NULL}, I'm implying two MUST-beliefs:
+  1) POST: {\tt p} is {\tt NULL} on true path, not-{\tt NULL} on false path; 2) PRE:
+  {\tt p} was unknown before the check.
+\squishend
+
+We can cross-check these for three different error types. I leave finding
+the actual error to you:
+\squishlist
+\item check-then-use (79 errors, 26 false positives):
+\begin{lstlisting}
+  /* linux 2.4.1: drivers/isdn/svmb1/capidrv.c */
+  if (!card)
+    printk(KERN_ERR, "capidrv-%d: ...", card->contrnr...);
+\end{lstlisting}
+\item use-then-check (102 errors, 4 false positives):
+\begin{lstlisting}
+  /* linux 2.4.7: drivers/char/mxser.c */
+  struct mxser_struct *info = tty->driver_data;
+  unsigned flags;
+  if (!tty || !info->xmit_buf)
+    return 0;
+\end{lstlisting}
+\item contradictions/redundant checks (24 errors, 10 false positives:)
+\begin{lstlisting}
+  /* linux 2.4.7/drivers/video/tdfxfb.c */
+  fb_info.regbase_virt = ioremap_nocache(...);
+  if (!fb_info.regbase_virt)
+    return -ENXIO;
+  fb_info.bufbase_virt = ioremap_nocache(...);
+  /* [META: meant fb_info.bufbase_virt!] */
+  if (!fb_info.regbase_virt) {
+    iounmap(fb_info.regbase_virt);
+\end{lstlisting}
+\squishend
+
+\end{document}

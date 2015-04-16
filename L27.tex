@@ -1,0 +1,257 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage{hyperref}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newtheorem{claim}{Claim}
+\newcommand{\strue}{\mbox{\scriptsize \sf true}}
+\newcommand{\sfalse}{\mbox{\scriptsize \sf false}}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+%\renewcommand{\baselinestretch}{1.25}
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+\begin{document}
+
+\lecture{27 --- March 13, 2015}{Winter 2015}{Patrick Lam}{version 0}
+Last time, we finished with an example showing that GACC does not
+subsume PC.
+
+\paragraph{Same example with CACC.} ~ \\[3em] % p = a \leftrightarrow b.
+% a active: <a:T, b:T> -> p T, a active (since switching a to F => p = F)
+%           <a:F, b:T> -> p F, a active (since switching a to T => p = T)
+%
+% b active: <a:T, b:T> -> p T, b active
+%           <a:T, b:F> -> p F, b active
+%
+% test set { <a:T, b:T>, <a:F, b:T>, <a:T,b:F> } satisfies CACC.
+
+So, how can we satisfy CACC on this example from last time?
+\[ p = a \wedge (b \vee c) \]
+
+% a active: b or c must be true; <a:T, b:T, c:F>, <a:F, b:F, c:T>
+% b active: a T, c F: <a:T, b:F, c:F>, <a:T, b:T, c:F>
+% c active: a T, b F: <a:T, b:F, c:F>, <a:T, b:F, c:T>
+% does not satisfy RACC
+
+~ \\[3em]
+
+\paragraph{CACC versus RACC.} There's no clear reason to prefer
+RACC over CACC. But we can construct situations where CACC is feasible
+and RACC is infeasible. These situations typically involve
+dependencies between clauses, making some combinations of clause
+variables impossible.  See the book for an example.
+
+RACC seems to come from the aviation community misinterpreting
+a loosely-defined criterion known as ``MCDC''. RACC then corresponds to
+``unique-cause MCDC'', but the FAA now allows CACC test suites, under the
+name ``masking MCDC''.
+
+\paragraph{Inactive Clause Coverage.} The book also defines the notion of
+inactive clause coverage.
+
+\paragraph{Exercise 1.} Consider predicate
+\[ p = a \leftrightarrow b \wedge c.\]
+\begin{enumerate}[(a)]
+\item Identify all clauses in predicate $p$.
+\item Compute and simplify conditions under which each of the clauses determines $p$.
+  Conditions must use only $\wedge$, $\vee$ and $\neg$.
+\item Write the complete truth table for all clauses. Label rows starting at 1.
+  Row 1 is all-clauses-true. Include columns where each clause determines the
+  predicate, and also a column for the predicate itself.
+\item Identify all pairs of rows from your table that satisfy GACC with respect
+  to each clause.
+\item Identify all pairs of rows from your table that satisfy CACC with respect
+  to each clause.
+\item Identify all pairs of rows from your table that satisfy RACC with respect
+  to each clause.
+\end{enumerate}
+\paragraph{Exercise 2.} Same exercise, but this time $p = a \wedge b$.
+
+\section*{Infeasibility and Subsumption}
+Of course, some test requirements are infeasible. It's easy to make RACC infeasible.
+
+\paragraph{Workaround I.} Satisfy feasible TRs, drop infeasible TRs.
+
+\paragraph{Workaround II.} If you can't satisfy a particular
+coverage criterion, use a looser criterion. For instance, if you can't satisfy
+RACC, settle for CACC.
+
+\paragraph{Causes of infeasibility.} From the
+definition, a logic coverage test requirement $t$ is infeasible if
+no test case can satisfy test requirement $t$. Here's an example of
+a case where predicate coverage is infeasible:
+
+\begin{lstlisting}
+  void m(char[] c) {
+    if (c.length < 0) {
+      print ("infeasible");
+   }
+  }
+\end{lstlisting}
+
+Clearly, no array $c$ can have negative length, so the predicate can't
+be false.
+
+I can think of the following ways for a coverage test requirement to 
+be infeasible; these ways reflect the steps you need to follow to satisfy
+test requirements.
+\begin{itemize}
+\item The predicate is unreachable in its context (as in graph reachability); or
+\item The method containing the predicate never assigns appropriate values
+to its variables to cause the desired clause values (as in the example above); or
+\item A clause never determines a predicate and you are trying to achieve an active clause coverage criterion.
+\end{itemize}
+
+\clearpage
+
+\section*{Subsumption Chart}
+Without inactive clause criteria, we can simplify the
+subsumption chart in the book to:
+
+\tikzstyle{bw} = [rectangle split, rectangle split parts=2, draw, fill=blue!20, 
+    text width=8em, text centered, rounded corners, minimum height=2em]
+
+\begin{center}
+\scalebox{0.7}{
+\begin{minipage}{.4\textwidth}
+  \label{SC}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=20mm,
+                    semithick,initial text=]
+
+  \node[bw]   (CoC)               {Combinatorial Clause Coverage \nodepart{second} CoC};
+  \node[bw]   (RACC) [below of=CoC] {Restricted Active Clause Coverage \nodepart{second} RACC};
+  \node[bw]   (CACC) [below of=RACC] {Correlated Active Clause Coverage \nodepart{second} CACC};
+  \node[bw]   (GACC) [below of=CACC] {General Active Clause Coverage \nodepart{second} GACC};
+  \node[bw]   (CC) [below of=GACC] {Clause Coverage \nodepart{second} CC};
+  \node[bw]   (PC) [right of=CC,xshift=5em] {Predicate Coverage \nodepart{second} PC};
+
+  \path (CoC) edge node {} (RACC)
+        (RACC) edge node {} (CACC)
+        (CACC) edge node {} (GACC)
+               edge[bend left] node {} (PC)
+        (GACC) edge node {} (CC);
+
+\end{tikzpicture}
+\end{minipage}
+}
+\end{center}
+
+\section*{How to get Logic Coverage}
+To achieve logic coverage:
+\squishlist
+\item identify the predicates $p \in P$ in the program fragment under test;
+\item figure out how to reach each of the predicates;
+\item make $c$ determine $p$ (for the active clause criteria); and
+\item find values for (program) variables to meet various criteria.
+\squishend
+
+We've seen how to make $c$ determine $p$; let's look at an example where
+we find values for variables to meet the criteria.
+
+\paragraph{Predicates.} We'll use the following predicate, modified from the textbook example
+{\tt TestPat}:
+\begin{verbatim}
+    isPat == false && iSub + pL - 1 < sL || subject[iSub] == pattern[0]
+\end{verbatim}
+We can assign names to these clauses, giving the symbolic predicate:\\[1em]
+%\[ a \wedge b \vee c. \]
+
+\paragraph{Determination.} We analyze the predicate and determine the conditions under which each clause
+determines the predicate: \\[3em]
+% a determines when b or c is true; b determines when c is false, a true;
+% c determines when b is false, a true.
+
+\paragraph{Mapping Values to Predicates.} Now we need to find program values that correspond to different
+predicate values. {\tt isPat} is a boolean variable, so it's easy. The
+code says that {\tt pL} and {\tt sL} are lengths of argument arrays,
+so we need to assign arrays such that {\tt iSub + pL - 1 < sL}.
+Finally, we can assign values to {\tt iSub} and {\tt
+  subject} such that {\tt subject[iSub]} is equal to or different from
+{\tt pattern}, as needed. Examples:\\[3em]
+
+%{\tt iSub = 0, pattern = new char[1], subject = new char[5]} ($b$ true)
+%{\tt iSub = 0, pattern[0] = subject[0] = 'a'}.
+
+\paragraph{Coverage Criteria.} We now list the coverage criteria. For PC,
+we have: \\[1.5em]
+
+CC:\\[1.5em]
+
+CoC:\\[2em]
+
+GACC:\\[5em]
+
+(What are all of the ways to satisfy GACC?)
+
+CACC: additional constraint that each pair must cause $p$ to be
+both true and false.\\[3em]
+
+RACC:
+
+\paragraph{Concluding Comments on Logic Criteria.} GACC doesn't imply
+predicate coverage, but often does when 3 or more terms are involved.
+RACC can be unsatisfiable. CACC seems to often be ``just right''.
+
+\end{document}

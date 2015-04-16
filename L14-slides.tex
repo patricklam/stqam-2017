@@ -1,0 +1,623 @@
+\documentclass{beamer}
+
+\usetheme{Boadilla}
+
+%\includeonlyframes{current}
+
+\usepackage{times}
+\usefonttheme{structurebold}
+\usepackage{listings}
+\usepackage{ragged2e}
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+\usetikzlibrary{shapes}
+\usepackage{amsmath,amssymb}
+\usepackage{rotating}
+\usepackage{ulem}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{tikz}
+\tikzset{
+  every overlay node/.style={
+    draw=black,fill=white,rounded corners,anchor=north west,
+  },
+}
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+
+%\setbeamercovered{dynamic}
+\setbeamertemplate{footline}[page number]{}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{structurebold}
+
+\title{Software Testing, Quality Assurance \& Maintenance---Lecture 14}
+\author{Patrick Lam}
+\date{February 4, 2015}
+
+\colorlet{redshaded}{red!25!bg}
+\colorlet{shaded}{black!25!bg}
+\colorlet{shadedshaded}{black!10!bg}
+\colorlet{blackshaded}{black!40!bg}
+
+\colorlet{darkred}{red!80!black}
+\colorlet{darkblue}{blue!80!black}
+\colorlet{darkgreen}{green!80!black}
+
+\newcommand{\rot}[1]{\rotatebox{90}{\mbox{#1}}}
+\newcommand{\gray}[1]{\mbox{#1}}
+
+\newenvironment{changemargin}[1]{% 
+  \begin{list}{}{% 
+    \setlength{\topsep}{0pt}% 
+    \setlength{\leftmargin}{#1}% 
+    \setlength{\rightmargin}{1em}
+    \setlength{\listparindent}{\parindent}% 
+    \setlength{\itemindent}{\parindent}% 
+    \setlength{\parsep}{\parskip}% 
+  }% 
+  \item[]}{\end{list}}
+
+
+\lstset{ %
+language=C++,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Last Time}
+
+  \begin{changemargin}{2cm}
+    MAY-belifes versus MUST-beliefs\\[1em]
+    Cross-checking beliefs
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Today}
+\begin{changemargin}{2cm}
+Inferring beliefs via statistics\\
+Linters\\
+\end{changemargin}
+\end{frame}
+
+\part{Inferring beliefs}
+\frame{\partpage}
+
+\begin{frame}[fragile]
+\frametitle{Redundancy Checking}
+  \begin{changemargin}{2cm}
+    Assumption: code ought to do something\\[1em]
+    Look for identity operations, e.g.\\
+\hspace*{4em} {\tt x = x}, ~ {\tt 1 * y}, ~ {\tt x \& x}, ~ {\tt x | x}.\\
+  \end{changemargin}
+{\small
+\begin{lstlisting}[language=C]
+    /* 2.4.5-ac8/net/appletalk/aarp.c */
+    da.s_node = sa.s_node;
+    da.s_net = da.s_net;
+\end{lstlisting}
+}
+  \begin{changemargin}{2cm}
+    Also look for unread writes:\\
+  \end{changemargin}
+
+{\small \begin{lstlisting}[language=C]
+    for (entry=priv->lec_arp_tables[i]; 
+         entry != NULL; entry=next) {
+      next = entry->next; // never read!
+      ...
+    }
+\end{lstlisting} 
+}
+  \begin{changemargin}{2cm}
+Redundancy suggests conceptual confusion.\\
+\small \hfill (examples courtesy Dawson Engler)
+ 
+  \end{changemargin}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{From MUST to MAY}
+  \begin{changemargin}{2cm}
+    Preceding examples were about MUST beliefs:\\
+\hspace*{2em} violations were clearly wrong.\\[1em]
+    Let's examine MAY beliefs next:\\
+    \begin{itemize}
+      \item need more evidence of wrongdoing.
+    \end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Verifying MAY beliefs}
+  \begin{changemargin}{1.5cm}
+\begin{enumerate}
+\item    Record every successful MAY-belief check as ``check''.\\[1em]
+\item    Record every unsucessful belief check as ``error''.\\[1em]
+\item    Rank errors based on ``check'' : ``error'' ratio.
+\end{enumerate}~\\[1.5em]
+    Most likely errors: ``check'' is large, ``error'' small.
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Let's find some MAY beliefs}
+  \begin{changemargin}{2cm}
+    use-after-free: 
+ \begin{lstlisting}[language=C]
+    free(p);
+    print(*p);
+ \end{lstlisting}
+~\\[1em]
+That is a MUST-belief. \\[1em]
+However, other resources are freed by custom (undocumented) free functions.\\[1em]
+Let's derive them behaviourally.
+  \end{changemargin}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Finding custom free functions}
+  \begin{changemargin}{2cm}
+    Key idea:\\
+    If pointer {\tt p} not used after calling {\tt foo(p)},\\
+    then derive a MAY belief that {\tt foo(p)} frees {\tt p}.\\[2em]
+
+    Just assume all functions free all arguments.
+\begin{itemize}
+\item emit ``check'' at every call site;
+\item emit ``error'' at every use.
+\end{itemize}
+    (in reality, filter functions with suggestive names).
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: finding free functions}
+  \begin{changemargin}{2cm}
+Putting that into practice, \\
+we might observe:\\[1em]
+\begin{tabular}{l|l|l|l|l|l}
+\begin{minipage}{3em}
+foo(p)
+*p = x;
+\end{minipage} &
+\begin{minipage}{3em}
+foo(p)
+*p = x;
+\end{minipage} &
+\begin{minipage}{3em}
+foo(p)
+*p = x;
+\end{minipage} &
+\begin{minipage}{3em}
+bar(p)
+p = 0;
+\end{minipage} &
+\begin{minipage}{3em}
+bar(p)
+p=0;
+\end{minipage} &
+\begin{minipage}{3em}
+bar(p)
+*p = x;
+\end{minipage} 
+\end{tabular}
+~\\[1em]
+Rank {\tt bar}'s error first.\\
+Sample results: 23 free errors, 11 false positives.
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{More statistical techniques: nullness checks}
+  \begin{changemargin}{2cm}
+    Situation: \\[1em]
+    \hspace*{1em} Want to know which routines may return {\tt NULL}.\\[1em]
+    Possible solution: static analysis to find out.\\[1em]
+    Problems:
+    \begin{itemize}
+      \item difficult to know statically (``{\tt return p->next;}''?)
+      \item get false positives: \\ functions return {\tt NULL} under special cases only.
+    \end{itemize}
+    
+
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Applying a statistical technique to nullness checks}
+  \begin{changemargin}{2cm}
+    Instead: let's observe what the programmer does.\\
+    Again, rank errors based on checks vs non-checks.\\[2em]
+    Just assume {\bf all} functions can return {\tt NULL}.
+\begin{itemize}
+  \item pointer checked before use: emit ``check'';
+  \item pointer used before check: emit ``error''.
+\end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: finding NULL-returning functions}
+  \begin{changemargin}{2cm}
+This time, 
+we might observe:\\[1em]
+  \end{changemargin}
+\begin{tabular}{l|l|l|l}
+\begin{minipage}{5em}
+p = bar(...);\\
+*p = x;
+\end{minipage} &
+\begin{minipage}{7em}
+p = bar(...);\\
+if (!p) return;\\
+*p = x;
+\end{minipage} &\begin{minipage}{7em}
+p = bar(...);\\
+if (!p) return;\\
+*p = x;
+\end{minipage} &\begin{minipage}{7em}
+p = bar(...);\\
+if (!p) return;\\
+*p = x;
+\end{minipage}
+\end{tabular}\\[1em]
+  \begin{changemargin}{2cm}
+Sort errors based on ``check'':``error'' ratio.\\
+Sample results: 152 free errors, 16 false positives.
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{General statistical technique}
+  \begin{changemargin}{2cm}
+``a(); \ldots b();'' implies MAY-belief that a() followed by b().\\
+(is it real or fantasy? we don't know!)\\[2em]
+Algorithm: 
+\begin{itemize}
+\item assume every {\tt a}--{\tt b} is a valid pair;
+\item emit ``check'' for each path with ``a()'' and then ``b()'';
+\item emit ``error'' for each path with ``a()'' and no ``b()''.
+\end{itemize}
+(actually, prefilter functions that look paired).
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example: general technique}
+  \begin{changemargin}{2cm}
+Consider:\\[1em]
+  \end{changemargin}
+\begin{tabular}{l|l|l}
+\begin{minipage}{10em}
+foo(p, \ldots);\\
+bar(p, \ldots); // check 
+\end{minipage} &
+\begin{minipage}{10em}
+foo(p, \ldots);\\
+bar(p, \ldots); // check 
+\end{minipage} &
+\begin{minipage}{12em}
+foo(p, \ldots);\\
+// error: foo, no bar!
+\end{minipage}
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Application: course project}
+\begin{tabular}{ll}
+\begin{minipage}{10em}
+\scriptsize
+\begin{lstlisting}
+void scope1() {
+ A(); B(); C(); D();
+}
+
+void scope2() {
+ A(); C(); D();
+}
+
+void scope3() {
+ A(); B();
+}
+
+void scope4() {
+ B(); D(); scope1();
+}
+
+void scope5() {
+ B(); D(); A();
+}
+
+void scope6() {
+ B(); D();
+}
+\end{lstlisting}
+\end{minipage} &\begin{minipage}{18em}
+``A() and B() must be paired'':\\
+either A() then B() or B() then A().\\[2em]
+\begin{tabbing}
+{\bf Support} =  \= \# times a pair of functions \\
+\> appears together.\\
+\> \hspace*{2em} support(\{A,B\})=3
+\end{tabbing}
+~\\[1em]
+{\bf Confidence(\{A,B\},\{A\}}) = \\ \hspace*{2em} support(\{A,B\})/support(\{A\}) = 3/4
+\end{minipage}
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Application: course project}
+\begin{tabular}{ll}
+\begin{minipage}{10em}
+\scriptsize
+\begin{lstlisting}
+void scope1() {
+ A(); B(); C(); D();
+}
+
+void scope2() {
+ A(); C(); D();
+}
+
+void scope3() {
+ A(); B();
+}
+
+void scope4() {
+ B(); D(); scope1();
+}
+
+void scope5() {
+ B(); D(); A();
+}
+
+void scope6() {
+ B(); D();
+}
+\end{lstlisting}
+\end{minipage} &\begin{minipage}{18em}
+Sample output for support threshold~3, confidence threshold 65\% (intra-procedural analysis):
+\small
+\begin{itemize}
+\item bug:A in scope2, pair: (A B), support:~3, confidence: 75.00\%
+\item bug:A in scope3, pair: (A D), support:~3, confidence: 75.00\%
+\item bug:B in scope3, pair: (B D), support:~4, confidence: 80.00\%
+\item bug:D in scope2, pair: (B D), support:~4, confidence: 80.00\%
+\end{itemize}
+\end{minipage}
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Why are we doing this again?}
+    \begin{lstlisting}[language=C,commentstyle={\color{red}\bf}]
+/* 2.4.0:drivers/sound/cmpci.c:cm_midi_release: */
+lock_kernel(); // [PL: GRAB THE LOCK]
+if (file->f_mode & FMODE_WRITE) {
+  add_wait_queue(&s->midi.owait, &wait);
+  ...
+  if (file->f_flags & O_NONBLOCK) {
+    remove_wait_queue(&s->midi.owait, &wait);
+    set_current_state(TASK_RUNNING);
+    return -EBUSY; // [PL: OH NOES!!1]
+  }
+  ...
+}
+unlock_kernel();
+    \end{lstlisting}
+    \begin{changemargin}{1cm}
+      \Large
+      Problem: lock() and unlock() must be paired!
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary: Belief Analysis}
+    \begin{changemargin}{2cm}
+      We don't know what the right spec is.\\
+      Instead, look for contradictions.\\[2em]
+      MUST-beliefs: contradictions = errors!\\[1em]
+      MAY-beliefs: pretend they're MUST, rank by confidence.\\[2em]
+      (Key assumption: most of the code is correct.)
+    \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Further references}
+
+Dawson~R. Engler, David Yu Chen, Seth Hallem, Andy Chou and Benjamin Chelf.\\
+``Bugs as Deviant Behaviors: A general approach to inferring errors in systems code''.\\
+In SOSP '01.\\[1em]
+
+Dawson~R. Engler, Benjamin Chelf, Andy Chou, and Seth Hallem.\\
+``Checking system rules using system-specific, programmer-written
+  compiler extensions''.\\
+In OSDI '00 (best paper).\\
+\url{www.stanford.edu/~engler/mc-osdi.pdf}\\[1em]
+
+Junfeng Yang, Can Sar and Dawson Engler.\\
+``eXplode: a Lightweight, General system for Finding Serious Storage System Errors''.\\
+In OSDI'06.\\
+\url{www.stanford.edu/~engler/explode-osdi06.pdf}
+\end{frame}
+
+\part{Using Linters}
+
+\begin{frame}
+\partpage
+\small
+source: \url{jamie-wong.com/2015/02/02/linters-as-invariants/}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{First there was C}
+\begin{changemargin}{2cm}
+Statically-typed languages like C:
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+int main() {
+  printf("%d\n", num);
+  return 0;
+}
+\end{lstlisting}
+Compiler saves you from yourself.\\[1em]
+Guaranteed invariant:\\
+\hspace*{2em} ``if code compiles, all symbols resolve''.
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Less-nice languages}
+\begin{changemargin}{2cm}
+OK, so you try to run that in JavaScript and it crashes right away.\\[1em]
+
+Invariant:\\
+\hspace*{2em} ``if code runs, all symbols resolve''?
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Counterexample}
+\begin{changemargin}{2cm}
+But what about this:
+\begin{lstlisting}
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+\end{lstlisting}
+Nope!
+\end{changemargin}
+\end{frame}
+\begin{frame}[fragile]
+\frametitle{Still no invariants}
+\begin{changemargin}{2cm}
+Invariant:\\
+\hspace*{2em} ``if code runs without crashing, all symbols referenced in the code path executed resolve''?
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Nope}
+\begin{changemargin}{2cm}
+\begin{lstlisting}
+function main() {
+  try {
+    console.log(num);
+  } catch (err) {
+    console.log("nothing to see here");
+  }
+}
+
+main();
+\end{lstlisting}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{JavaScriptWorld Problems}
+\begin{changemargin}{2cm}
+When maintaining old code:
+\begin{itemize}
+\item is this variable defined?
+\item is this variable always defined?
+\item do I need to load a script to define that variable?
+\end{itemize}
+~\\[1em]
+Why is this the developer's problem?
+\end{changemargin}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Solution: Linters}
+\begin{changemargin}{0cm}
+
+\begin{lstlisting}
+plam@banach ~> cat foo.js
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+
+plam@banach ~> nodejs /usr/local/lib/node_modules/jshint/bin/jshint --config jshintrc foo.js
+foo.js: line 5, col 17, 'num' is not defined.
+
+1 error
+\end{lstlisting}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Invariant}
+
+\begin{center}
+``If code passes JSHint, all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Strengthening the Invariant}
+
+\begin{changemargin}{2cm}
+Add a pre-commit hook.
+\end{changemargin}
+
+\begin{center}
+``If code is checked-in and commit hook ran,\\ all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Better yet\ldots}
+
+\begin{changemargin}{2cm}
+Block deploys on test failures.
+\end{changemargin}
+
+\begin{center}
+``If code is deployed,\\ all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Even better yet\ldots}
+
+\begin{changemargin}{2cm}
+Hard to tell if code is deployed or not.\\
+Use git feature branches, merge when deployed.
+\end{changemargin}
+\begin{center}
+``If code is in master,\\ all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+
+\end{document}

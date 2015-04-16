@@ -1,0 +1,174 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{29 --- March 18, 2015}{Winter 2015}{Patrick Lam}{version 0}
+
+\subsection*{Input Space Partitioning}
+Recall the most basic form of testing: feed inputs to the program and
+see how it behaves. Of course, we know that we can't feed all inputs
+to the program, so we only test a representative set of inputs.
+\emph{Input space partitioning} makes this idea more formal: test one
+input from each partition.
+
+% picture of dots
+
+{\sf Desirable properties for partitions:}\\[3em]
+%% \begin{itemize}
+%% \item cover entire domain (completeness)
+%% \item must not overlap (disjointness)
+%% \end{itemize}
+
+Partitions are usually based on \emph{characteristics} of the input
+(or environment),{\sf e.g.}\\[4em]
+% colour, length, nullness, implemented interfaces
+
+Here is an example of a bad partition on objects which may implement
+interfaces {\tt List} and {\tt Serializable}:
+\begin{itemize}
+\item objects which implement {\tt List}
+\item objects which implement {\tt Serializable}
+\item neither
+\end{itemize}
+What about objects that are serializable lists? Instead,
+use the characteristics separately:
+\begin{itemize}
+\item {\tt List} / not {\tt List}
+\item {\tt Serializable} / not {\tt Serializable}
+\end{itemize}
+Disjoint partitions make it easier to ensure that you indeed cover all
+partitions.
+
+\section*{Input Domain Modelling}
+We will describe input domains at the unit level, although it applies
+equally well at the integration level. Three steps:
+\begin{itemize}
+\item find units/functions to test;
+\item identify parameters of each unit;
+\item come up with the model.
+\end{itemize}
+
+\paragraph{What Units Should We Test?} First, we determine what to test.
+
+\begin{itemize}
+\item In our sample programs below, there's only one testable
+  function.
+\item For classes in general, could test all public methods (grouping
+  them together as needed).
+\item Use cases can also give you hints about how to group both
+  methods and inputs, or about which methods might be most important.
+\end{itemize}
+
+\paragraph{What are the Parameters?} Next, we figure out what inputs the
+units might take. {\sf Some possibilities:}\\[4em]
+
+%% \begin{itemize}
+%% \item method parameters and other program state;
+%% \item fields and data structures
+%% \item files
+%% \end{itemize}
+
+\paragraph{Create the Model!} Finally, we can group the inputs by finding
+characteristics, and creating partitions and blocks, from the values.
+Here's an example of the input domain of two digit numbers:
+
+\begin{center}
+\begin{tabular}{cccccccccc}
+00 & 01 & 02 & 03 & 04 & 05 & 06 & 07 & 08 & 09 \\
+10 & 11 & 12 &    & 14 &        & 16 &    & 18 & \\
+20 & 21 & 22 &    &    & $\cdots$ &    &    &    & \\
+30 & 31 & 32 &    &    & $\cdots$ &    &    &    & \\
+$\vdots$ &    &    &    &    & $\cdots$  & & & & $\vdots$ \\
+90 &    &    &    &    & $\cdots$  & & & & 99
+\end{tabular}
+\end{center}
+
+{\sf Possible characteristics and partitions:}\\[6em]
+% first digit, last digit, evenness
+
+% partitions by first digit: first digit 0...9
+% partitions by evenness: even, odd.
+
+\clearpage
+\subsection*{Definitions}
+Here are some definitions. 
+\begin{itemize}
+\item Characteristics: how we distinguish values; 
+\item Partition: a way of splitting values into a set of blocks ($p: I \rightarrow \{ 0, 1, \cdots, n \}$)
+\item Block: a set of values that are alike with respect to a characteristic ($p^{-1}(k)$)
+\end{itemize}
+Each input value belongs to one block per characteristic. (We'll talk about
+combinations later.)
+
+\subsection*{Input Domain Models}
+Coming up with IDMs requires creativity and analysis. Two general approaches:
+\begin{itemize}
+\item interface-based, using the input space directly; or
+\item functionality-based, using a functional or behavioural view of the program.
+\end{itemize}
+
+\paragraph{Interface-Based Input Domain Modelling.} Consider each
+parameter in isolation. For example: 
+\begin{verbatim}
+  public boolean containsElement(List list, Object element);
+\end{verbatim}
+Possible interface-based characteristics:
+\begin{itemize}
+\item {\tt list} is null; block 1: {\tt true}, block 2: {\tt false}
+\item {\tt list} is empty; block 1: {\tt true}, block 2: {\tt false}
+\end{itemize}
+
+Notes:
+\begin{itemize}
+\item (+) ``surprisingly good'', says the book;
+\item (+) easy to identify characteristics (but book doesn't provide cookbook);
+\item (+) easy to translate to test cases;
+\item (-) doesn't use domain knowledge, e.g. relationships between parameters.
+\end{itemize}
+
+
+
+\end{document}

@@ -1,0 +1,136 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{url}
+
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=2.5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bw} = [rectangle, draw, fill=blue!20, 
+    text width=3.5em, text centered, rounded corners, minimum height=2em]
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf ECE459: Programming for Performance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\lstset{basicstyle=\ttfamily \scriptsize,
+  basicstyle=\ttfamily,
+   columns=fullflexible,
+   breaklines=true,
+   numbers=left,
+   numberstyle=\scriptsize,
+   stepnumber=1,
+   mathescape=false,
+   tabsize=2,
+   showstringspaces=false
+}
+
+\newenvironment{itemizep}{
+ \begin{itemize}
+  \setlength{\itemsep}{0pt}
+  \setlength{\parsep}{3pt}
+  \setlength{\topsep}{3pt}
+  \setlength{\partopsep}{0pt}
+  \setlength{\leftmargin}{1.5em}
+  \setlength{\labelwidth}{1em}
+  \setlength{\labelsep}{0.5em} }
+ {\end{itemize}}
+
+\begin{document}
+
+\lecture{36 --- April 6, 2015}{Winter 2015}{Patrick Lam}{version 0}
+
+\section*{Ensuring Testability}
+This is from Chapter 6 of the Meszaros book.
+
+Retrofitting testability is harder than it needs to be. So is
+designing testability into a system that doesn't yet exist. The happy
+medium is in between: incorporate testability as you go along.  Build
+your system for testability.  Plus, tests help during development.
+
+\paragraph{Control Points and Observation Points.}
+We previously saw these concepts in Lecture 4. \emph{Control points} are ways to get the 
+system under test (SUT) to do something. It is OK to have test-only control points, although
+you should probably label them as such. \emph{Observation points} are how you figure out
+if the system under test is doing the right thing. Direct observation points are clear 
+and mainly consist of return values. But there are also indirect observation points,
+where you add test doubles and have them check that the SUT is doing the right thing,
+for instance by observing outbound calls.
+
+\paragraph{Interaction Styles and Testability Patterns.}
+The easiest pattern is the \emph{round-trip test}: your test uses the public interface only.
+This works great when your system is sufficiently controllable or observable.
+
+An alternative is the \emph{layer-crossing test}: you use the SUT's
+API, but then you watch what it does using test spies or mock
+objects. The danger is that you might get overspecified
+software. Sometimes it doesn't matter that the SUT calls {\tt x()} and
+then {\tt y()}; it's fine to change the order. Your test should not
+tie the hands of the implementer.
+
+\emph{Dependency Injection} is a good way to make mock objects be used
+by the SUT. More about that shortly. Or, you can use test-specific subclasses,
+or, as a very last resort, test hooks. They are perilously close to having
+test code in production, though.
+
+Finally, you might have a \emph{asynchronous test}. You send messages
+to the system under test and wait for responses. Waiting can be slow
+and sometimes unreliable, though. This also includes using the UI to
+test, which is painful and fragile. It's better to interact with the
+underlying system directly, when possible.
+
+\paragraph{More on Dependency Injection.} This has always been confusing to
+me. So, here's an example. Consider:
+
+\begin{lstlisting}
+public void testDisplayCurrentTime_AtMidnight() {
+  TimeDisplay sut = new TimeDisplay();
+  String result = sut.getCurrentTimeAsHtmFragment();
+  String expectedTimeString = "<span class=\"...\">Midnight</span>";
+  assertEquals(expectedTimeString, result);
+}
+
+public String getCurrentTimeAsHtmlFragment() {
+  Calendar currentTime;
+  try {
+    currentTime = new DefaultTimeProvider.getTime();
+  } catch (Exception e) {
+    return e.getMessage();
+  } // etc.
+}
+\end{lstlisting}
+
+This is not going to succeed very often! The dependency on
+{\tt DefaultTimeProvider} is hard-coded. You can instead 
+introduce a {\tt TimeProvider} argument. There are lots of choices:
+you can introduce it as a function parameter, or in the constructor,
+or using a setter method. Or, you can have dependency lookup.
+
+\end{document}

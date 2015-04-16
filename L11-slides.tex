@@ -1,0 +1,420 @@
+\documentclass{beamer}
+
+\usetheme{Boadilla}
+
+%\includeonlyframes{current}
+
+\usepackage{times}
+\usefonttheme{structurebold}
+\usepackage{listings}
+\usepackage{ragged2e}
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+\usetikzlibrary{shapes}
+\usepackage{amsmath,amssymb}
+\usepackage{rotating}
+\usepackage{ulem}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{tikz}
+\tikzset{
+  every overlay node/.style={
+    draw=black,fill=white,rounded corners,anchor=north west,
+  },
+}
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+
+%\setbeamercovered{dynamic}
+\setbeamertemplate{footline}[page number]{}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{structurebold}
+
+\title{Software Testing, Quality Assurance \& Maintenance---Lecture 11}
+\author{Patrick Lam\\University of Waterloo}
+\date{January 28, 2015}
+
+\colorlet{redshaded}{red!25!bg}
+\colorlet{shaded}{black!25!bg}
+\colorlet{shadedshaded}{black!10!bg}
+\colorlet{blackshaded}{black!40!bg}
+
+\colorlet{darkred}{red!80!black}
+\colorlet{darkblue}{blue!80!black}
+\colorlet{darkgreen}{green!80!black}
+
+\newcommand{\rot}[1]{\rotatebox{90}{\mbox{#1}}}
+\newcommand{\gray}[1]{\mbox{#1}}
+
+\newenvironment{changemargin}[1]{% 
+  \begin{list}{}{% 
+    \setlength{\topsep}{0pt}% 
+    \setlength{\leftmargin}{#1}% 
+    \setlength{\rightmargin}{1em}
+    \setlength{\listparindent}{\parindent}% 
+    \setlength{\itemindent}{\parindent}% 
+    \setlength{\parsep}{\parskip}% 
+  }% 
+  \item[]}{\end{list}}
+
+
+\lstset{ %
+language=C++,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Course roadmap}
+
+  \begin{changemargin}{2cm}
+  \begin{itemize}
+  \item $\checkmark$ Introduction (faults etc)
+  \item $\checkmark$ Graph coverage
+  \item $\Box$ \alert{Testing Concurrent Programs (wrap-up)}
+  \item $\Box$ Tools
+  \end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Assertions}
+\begin{changemargin}{2cm}
+  statements about the program state that are true, e.g.
+
+  \begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1cm,
+                    semithick,initial text=]
+
+  \node[circle,draw,initial]   (0)                    {};
+  \node[circle,draw]   (1) [right of=0]  {};
+  
+  \path (0) edge [bend left]  node {} (1)
+        (1) edge [bend left]  node {} (0);
+\end{tikzpicture}
+  \end{center}
+
+doubly-linked list property: {\tt prev} is the inverse of {\tt next}
+
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Assertions in This Course's Context}
+\begin{changemargin}{2cm}
+  We also use assertions in unit tests \\
+  \hspace*{1cm}to say what's supposed to be true.\\[1em]
+
+  Plus, last time, we asserted about a lock being held\\
+  upon entry to a method. Or not.
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Preconditions, Postconditions}
+\begin{changemargin}{2cm}
+  More generally, we can express\\[1em]
+  \begin{itemize}
+  \item  what is supposed to be true upon entry \& exit from a method.
+  \end{itemize}
+
+  We saw this code in Linux.
+  \begin{lstlisting}
+/* LOCKING: caller. */
+void ata_dev_select(...) { ...}
+  \end{lstlisting}
+  = an assertion that the lock is held upon entry.
+  
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Assume/Guarantee Reasoning}
+\begin{changemargin}{2cm}
+  Why would you use preconditions and postconditions?\\[1em]
+
+  When reasoning about the callee:\\
+  \hspace*{2em} assume the precondition holds upon entry;\\[2em]
+
+  When reasoning about the caller:\\
+  \hspace*{2em} guarantee the precondition holds before the call.\\[2em]
+
+  The reverse holds about the postcondition.
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What aComment actually does}
+\begin{changemargin}{2cm}
+  \begin{itemize}
+  \item extract locking-related annotations from code;
+  \item extract locking-related annotations from comments;
+  \item propagate annotations to callers.
+  \end{itemize}
+\end{changemargin}
+\end{frame}
+
+\part{Tools}
+\frame{\partpage}
+
+\begin{frame}[fragile]
+  \frametitle{OS X Mavericks goto fail bug}
+
+  \scriptsize
+\begin{lstlisting}[language=C]
+  if ((err = SSLHashSHA1.update(&hashCtx, &serverRandom)) != 0)
+      goto fail;
+  if ((err = SSLHashSHA1.update(&hashCtx, &signedParams)) != 0)
+      goto fail;
+      goto fail;  /* MISTAKE! THIS LINE SHOULD NOT BE HERE */
+  if ((err = SSLHashSHA1.final(&hashCtx, &hashOut)) != 0)
+      goto fail;
+      err = sslRawVerify(...);
+
+  fail:
+      return err;
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Source and writeup: goto fail}
+  
+\hspace*{3em}The bug:\\
+  {\scriptsize \url{opensource.apple.com/source/Security/Security-55471/libsecurity_ssl/lib/sslKeyExchange.c} }\\[2em]
+\hspace*{3em}No bug:\\
+{\scriptsize \url{www.opensource.apple.com/source/Security/Security-55179.13/libsecurity_ssl/lib/sslKeyExchange.c} }\\[2em]
+\hspace*{3em} Writeup:\\ {\scriptsize \url{nakedsecurity.sophos.com/2014/02/24/anatomy-of-a-goto-fail-apples-ssl-bug-explained-plus-an-unofficial-patch/}}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Detecting goto fail}
+  \begin{changemargin}{1cm}
+    In retrospect, a number of options:
+    \begin{itemize}
+    \item compiler {\tt -Wunreachable-code} option
+    \item PC-Lint:warning 539: Did not expect positive indentation
+    \item PVS-Studio:V640: Logic does not match formatting
+    \end{itemize}
+    ~\\[1em]
+\hfill \scriptsize    [slide credit: contents from Sye Van De Veen]
+  \end{changemargin}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Testing and Static Analysis Tools}
+  \begin{changemargin}{2cm}
+    The continuum:
+    \begin{itemize}
+    \item manual testing;
+    \item running a JUnit test suite, manually generated;
+    \item running automatically-generated tests;
+    \item running static analysis tools.
+    \end{itemize}
+    We'll examine several points on this continuum today.
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tools in Practice}
+  \begin{changemargin}{1.5cm}
+    More on this later (March), thanks to guest lecturer.
+    \begin{itemize}
+    \item Coverity---static analysis---used by 900+ companies, \\
+      including BlackBerry, Mozilla, etc.
+    \item Microsoft requires Windows device drivers \\
+      to pass the Static Driver Verifier for certification.
+    \end{itemize}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tools you can Download}
+  \begin{changemargin}{2.5cm}
+    We'll survey some tools for:
+    \begin{itemize}
+    \item \alert{Java}
+    \item C/C++
+    \end{itemize}
+    (or, use e.g. a programming language \\ with stronger types!)
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{findbugs.sourceforge.net}
+  \includegraphics[height=4em]{L11/umdFindbugs.png}
+
+  \begin{changemargin}{2cm}
+    Open-source static bytecode analyzer for Java.\\
+    Finds bug patterns:
+    \begin{itemize}
+    \item off-by-one;
+    \item null pointer dereference;
+    \item ignored {\tt read()} return value;
+    \item ignored return value (immutable classes);
+    \item uninitialized read in constructor;
+    \item and more\ldots
+    \end{itemize}
+
+    FindBugs gives some false positives. \\[1em]
+    Some techniques to avoid them:\\
+  \end{changemargin}
+\hspace*{1.5cm}    \url{patricklam.ca/papers/14.msr.saa.pdf}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Java Path Finder (JPF), NASA}
+
+  \includegraphics[height=4em]{L11/JPF.png}     {\em Key Idea:} 
+  \begin{changemargin}{2cm}
+
+    Implement a Java Virtual Machine,\\
+    but explore many thread interleavings,\\
+    looking for concurrency bugs.\\[2em]
+    ``JPF is an explicit state software model checker for Java\texttrademark bytecode.''\\[1em]
+    JPF can also search for
+    \begin{itemize}
+    \item deadlocks and unhandled exceptions \\ \hspace*{2em} ({\tt NullPointerException},\\
+      \hspace*{2em}
+        {\tt AssertionError});
+      \item race conditions, heap bounds checks.
+    \end{itemize}
+
+    \url{javapathfinder.sourceforge.net}
+  \end{changemargin}
+\end{frame}
+    
+\begin{frame}
+  \frametitle{Korat (University of Illinois)}
+
+  \includegraphics[height=2em]{L11/Korat.png} \hspace*{0.75cm}Key Idea:
+  \begin{changemargin}{2cm}
+  Generate Java objects from a representation invariant specification
+  written as a Java method.\\[1em]
+
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1cm,
+                    semithick,initial text=]
+
+  \node[circle,draw]   (0)                    {};
+  \node[circle,draw]   (1) [below left of=0]  {};
+  \node[circle,draw]   (2) [below right of=0] {};
+  \node[circle,draw]   (3) [below left of=1] {};
+  \node[circle,draw]   (4) [below right of=1] {};
+  
+  \path (0) edge              node {} (1)
+        (0) edge              node {} (2)
+        (1) edge              node {} (3)
+        (1) edge              node {} (4);
+\end{tikzpicture} \hspace*{2em} Binary Tree!\\[1em]
+
+One characteristic of a Binary Tree:
+\begin{itemize}
+\item left \& right pointers don't refer to same node.
+\end{itemize}
+
+  \end{changemargin}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Korat repOk for Binary Tree}
+  \tiny
+  \begin{changemargin}{1cm}
+\begin{lstlisting}[language=Java]
+boolean repOk() {
+  if (root == null) return size == 0; 	   	      // empty tree has size 0
+  Set visited = new HashSet(); visited.add(root);
+  List workList = new LinkedList(); workList.add(root);
+  while (!workList.isEmpty()) {
+    Node current = (Node)workList.removeFirst();
+    if (current.left != null) {
+      if (!visited.add(current.left)) return false; // acyclicity
+      workList.add(current.left);
+    }
+    if (current.right != null) {
+      if (!visited.add(current.right)) return false; // acyclicity
+      workList.add(current.right);
+    }
+  }
+  if (visited.size() != size) return false; 	     // consistency of size
+  return true;
+}
+\end{lstlisting}
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{What Korat Does}
+
+  \begin{changemargin}{2cm}
+    Generates all distinct (``non-isomorphic'') trees, \\
+    up to a given size (say 3).\\[1em]
+    Use these trees as inputs for testing \\
+    the {\tt add()} method of the tree.\\
+    (or for any other methods)\\[2em]
+  \end{changemargin}
+  \begin{center}
+    \url{korat.sourceforge.net/index.html}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Randoop (MIT)}
+
+  \includegraphics[height=2em]{L11/randoop.png} \hspace*{0.75cm}Key Idea:\\[1em]
+  \begin{changemargin}{2cm}
+  ``Writing tests is a difficult and time-consuming activity, \\
+  and yet it is a crucial part of good software engineering. \\[1em]
+  Randoop automatically generates unit tests for Java classes.''
+  \end{changemargin}
+\end{frame}
+
+\begin{frame}
+  \frametitle{How Randoop Works}
+
+  \begin{changemargin}{1cm}
+    Generate random sequence of method calls, \\
+    looking for object contract violations.\\[1em]
+    Point it at a program \& let it run.\\[2em]
+
+    Discard bad method sequences \\
+    \hspace*{2em}(e.g. illegal argument exceptions).\\
+    Remember method sequences that create complex objects,\\
+    and sequences that result in object contract violations.\\[1em]
+  \end{changemargin}
+
+  \begin{center}
+    \url{code.google.com/p/randoop/}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{An Example Generated by Randoop}
+
+  \begin{changemargin}{1cm}
+\begin{lstlisting}[language=Java]
+public static void test1() {
+    LinkedList list = new LinkedList();
+    Object o1 = new Object();
+    list.addFirst(o1);
+
+    TreeSet t1 = new TreeSet(list);
+    Set s1 = Collections.synchronizedSet(t1);
+
+    // violated in the Java standard library!
+    Assert.assertTrue(s1.equals(s1));
+  }
+\end{lstlisting}
+  \end{changemargin}
+\end{frame}
+\end{document}

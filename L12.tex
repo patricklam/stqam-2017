@@ -1,0 +1,266 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{amssymb}
+\usetikzlibrary{arrows,automata,shapes}
+
+\lstset{basicstyle=\ttfamily \scriptsize,
+  basicstyle=\ttfamily,
+   columns=fullflexible,
+   breaklines=true,
+   numbers=left,
+   numberstyle=\scriptsize,
+   stepnumber=1,
+   mathescape=false,
+   tabsize=2,
+   showstringspaces=false
+}
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]''
+}
+
+
+\begin{document}
+
+\lecture{12 --- January 30, 2015}{Winter 2015}{Patrick Lam}{version 1}
+
+Last time, we talked about some tools. Today, we'll talk about more tools.
+
+\paragraph{Daikon.} This tool is a dynamic tool that generates program
+invariants by observing program executions. An invariant is an expression
+that relates variables and constants; for instance, {\tt x + y == 5}.
+Daikon runs the program and examines the values that it computes. Daikon
+can potentially find formal specifications as well as bugs. It works on Java,
+C, C++, and Lisp.
+
+\begin{center}
+    \url{plse.cs.washington.edu/daikon/}
+\end{center}
+
+\paragraph{ESC/Java (Compaq).} This tool statically verifies that Java programs
+confirms to specifications written in the Java Modelling Language (JML).
+Here's an example of such a specification. (We should see more later.)
+    \begin{lstlisting}[language=Java,numbers=none]
+      //@ public invariant balance >= 0 && balance <= MAX_BALANCE;
+    \end{lstlisting}
+
+    \begin{center}
+      \url{www.hpl.hp.com/downloads/crl/jtk/index.html}
+    \end{center}
+
+ \paragraph{Valgrind.} Valgrind is a framework for x86-to-x86 just-in-time compilation.
+ It includes various tools, which can detect errors like memory errors and threading
+ errors. These tools make programming in C/C++ almost tolerable. No C/C++ programmer's
+ toolkit is complete without Valgrind.
+
+    {\bf memcheck} is a Valgrind tool that detects memory errors at runtime.
+It helps make your programs more correct, by finding:
+ illegal reads \& writes;
+ uses of uninitialized values;
+ double frees;
+ copies with overlapping sources and destinations; and
+ memory leaks.
+ {\bf helgrind} is a Valgrind tool to detect thread errors (e.g. races).
+ 
+  \begin{center}
+    \url{valgrind.org}
+  \end{center}
+
+\paragraph{cppcheck.} Next up, we have an open-source tool that statically checks for
+ out-of-bounds errors;
+ memory leaks;
+ division by zero;
+ null pointer dereferences;
+ calls to obsolete functions;
+ uses of uninitalized variables;
+ etc.
+
+ \begin{center}
+    \url{sourceforge.net/projects/cppcheck}
+  \end{center}
+
+ \newpage
+\paragraph{Flawfinder.} This tool is not very powerful; it is as powerful
+as an enhanced grep, and identifies non-comment calls to bad functions:
+\squishlist
+    \item buffer overflow risks: \\ {\tt strcpy()}, {\tt strcat()}, {\tt gets()}, {\tt sprintf()}, {\tt scanf()}
+    \item format string problems: \\
+      {\tt [v][f]printf()}, {\tt [v]snprintf()}, {\tt syslog()}
+    \item file system race conditions:\\
+      {\tt access()}, {\tt chown()}, {\tt tmpnam()}, etc.
+\squishend
+
+\begin{center}
+    \url{www.dwheeler.com/flawfinder}
+  \end{center}
+
+\paragraph{Clang Static Analyzer (U Illinois).} This is an
+extensible C/C++ compiler front-end which comes with a good static analyzer.
+
+The compiler: \url{clang-analyzer.llvm.org}.
+
+\url{clang-analyzer.llvm.org/available_checks.html} reports that it can,
+among other things, understand function arguments labelled as ``nonnull'', and statically
+check for violations of these annotations; plus the usual static checks, including for
+some memory leaks, division by 0, and null pointer dereferences.
+
+\paragraph{Sparse (Linux).}
+This is a ``semantic parser'' which was built specifically to find faults in the Linux kernel.
+In particular, it can find errors where kernel writers mix userspace and kernelspace pointers.
+Also, it can find the usual: null pointer dereferences, etc.
+
+\begin{center}    
+    \url{https://sparse.wiki.kernel.org/index.php/Main_Page}\\
+    \url{linux.die.net/man/1/sparse}
+\end{center}
+
+\paragraph{Splint (U Virginia).} This tool was inspired by lint, the original
+(somewhat lame) static analyzer for C. splint is a better lint, also for C.
+It checks for security vulnerabilities and coding mistakes, and can use
+annotations. For instance:
+
+\begin{lstlisting}[language=C]
+  /*@falsewhennull@*/ bool isNonEmpty
+                         (/*@null@*/ char *x) {
+    return (x != NULL && *x != '\0');
+  }
+    \end{lstlisting}
+
+\begin{center}
+    \url{www.splint.org}
+  \end{center}
+
+ \paragraph{Pex (Microsoft).} This tool performs white-box unit testing.
+ 
+\begin{center}
+  \url{pexforfun.com}
+\end{center}
+
+\paragraph{KLEE: Symbolic Execution Engine (Stanford).}
+The key idea here is to use symbolic execution to automatically
+generate high-coverage test suites.
+This is difficult due to the zillions of program paths that exist;
+KLEE attempts to  find the interesting ones.
+For more information, read the research paper at
+    \url{www.doc.ic.ac.uk/~cristic/papers/klee-osdi-08.pdf}.
+
+\begin{center}\url{klee.github.io}
+  \end{center}
+
+\paragraph{Symbolic Execution.} We can also use symbolic execution to improve
+software testing, as seen in this reference:
+
+``DASE: Document-Assisted Symbolic Execution for Improving Automated Software Testing''.
+In Proceedings of ICSE '15: Wong, Zhang, Wang, Liu, \& Tan.
+
+The key idea is to use input constraints automatically extracted from documents to guide symbolic
+  execution to test more effectively.
+
+\paragraph{Coverity Static Analyzer.} This industrial-strength tool (statically) identifies bugs in C/C++, Java, and C\# codebases. It claims to scale to ``hundreds of users, thousands of defects, and millions of lines of code in a single analysis.'' It does so by inferring must-beliefs and may-beliefs; we'll see more about those concepts in the next two lectures as well as the project. Coverity does a lot of work to keep the false positive rate low.
+
+\begin{center}
+  \url{www.coverity.com}
+\end{center}
+
+\paragraph{GrammaTech CodeSonar.} GrammaTech is another company that produces static analysis tools.CodeSonar is a static analysis tool for C, C++, and Java. It is, in particular, very good at C/C++.  The Java bug finding performance is reportedly similar to FindBugs, although CodeSonar has a better user interface.
+
+This tool aims for high recall (i.e. find all the things!)
+
+\begin{center}
+  \url{www.grammatech.com/products/codesonar}
+\end{center}
+
+\paragraph{Visual Studio (Microsoft).} Visual Studio includes a number of testing tools. For instance, one can write constraints that are related to e.g. buffer length, \\
+    which the compiler then checks for bugs.
+
+\paragraph{Other commercial tools.} Here's a list of more tools.
+\squishlist
+\item    PCLint: fast, na\"ive. \url{www.gimpel.com/html/pcl.htm}
+\item PVS-Studio: \url{www.viva64.com/en/b/0149}
+\item Fortify: helps find security vulnerabilities in a wide variety of languages + in config files.
+\item Intel Parallel Studio XE: Static Security Analysis for C++, Fortran.
+\item Klocwork Insight: finds security issues \& bugs in C/C++, Java, C\#.
+\squishend
+
+\paragraph{Development-related tools.} (suggested by Michael Viana) These don't really help with analyzing code, generally, but are also helpful if you have the problem they're trying to solve.
+\squishlist
+\item    ScalaTest: flexible testing framework for Scala.
+\item    ScalaCheck: random test generators, property-based testing.
+\item    Jacoco: code coverage (many others in the same space, e.g. EclEmma.)
+\item    Atlassian Bamboo: continuous integration server
+\squishend
+
+\paragraph{Homework.}
+Draw a decision tree to help a software tester/developer select an appropriate tool (if any) for a given project. (For any problem, more than one tool may be appropriate.)
+Pick two tools, use them, and compare them.
+    
+\end{document}
