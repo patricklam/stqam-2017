@@ -1,0 +1,200 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{url}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\begin{document}
+\title{Software Testing, Quality Assurance and Maintenance\\SE465/CS447/ECE453, Winter 2017, version 1}
+\author{Patrick Lam}
+\renewcommand{\today}{}
+\maketitle
+\vspace*{-2em}
+
+\section*{Brief Overview}
+As you have no doubt discovered, software never works right from the
+start. A key technique for getting more acceptable software is
+testing. Organized testing can help identify problems in software
+systems, enabling developers to fix these problems.  This course will
+introduce software testing techniques; while it's not my goal
+to produce testers, you should at least be conversant
+with up-to-date testing methodologies and techniques. And easier-to-test
+software is better software.
+
+In this class, we will also touch on software maintenance. While we
+greatly (over?) emphasize design in engineering school, maintenance
+consumes a large fraction of today's software development resources.
+
+\section*{General Information}
+
+\noindent
+\begin{tabbing}
+  {\bf Course web page:~~~} \= \url{https://patricklam.ca/stqam}\\
+  {\bf github repo:}\> \url{git@github.com:patricklam/stqam-2017.git}\\
+  {\bf Lectures:} \> MWF 11:30-12:20, MC 4020 (SE465)\\
+\> MWF 15:30-16:20, EIT 1015 (ECE453/CS447)\\
+{\bf Tutorials:} \> not generally used, but scheduled for F 17:30-18:20, EIT 1015
+\end{tabbing}
+
+\noindent
+{\bf Instructor:} \\
+
+\noindent
+\hspace*{2em} \begin{minipage}{.6\textwidth}
+Prof. Patrick Lam\\
+Office: DC2597C\\
+Office Hours: M 12:30-13:30, or by appointment\\
+Email: {\tt patrick.lam@uwaterloo.ca}\\
+Phone: Use email instead!
+
+\end{minipage} \\[1em]
+
+\noindent {\bf Lab Instructor:} \\
+
+\noindent
+\hspace*{2em} \begin{minipage}{.6\textwidth}
+Irene Huang\\
+Email: {\tt yqhuang@uwaterloo.ca}\\
+
+\end{minipage} \\[1em]
+
+
+\noindent {\bf Teaching Assistants:} \\
+
+\noindent
+\hspace*{2em}\begin{tabular}{l@{\hspace*{3em}}l}
+  Parsa Pourali&
+  {\tt ppourali@uwaterloo.ca}\\
+  Gursharan Sandhu&
+  {\tt g27sandh@uwaterloo.ca}\\
+  Mier Ta&
+  {\tt m2ta@uwaterloo.ca}\\
+  Xinye Tang&
+  {\tt x58tang@uwaterloo.ca}\\
+  Song Wang&
+  {\tt s446wang@uwaterloo.ca}\\
+  Jun Zhao&
+  {\tt j283zhao@uwaterloo.ca}\\
+\end{tabular}
+
+\section*{Course Description}
+\paragraph{Objectives.}
+We hope that you will learn how to test as a developer, thus making
+you a better developer. Good software systems are easy to test and
+we'll talk about how testability affects design.
+\begin{itemize}
+  \item You will be able to create and evaluate test suites for reasonably-sized
+software systems.
+
+  \item You will learn how to use and write tools for software maintenance and
+verification (particularly automated testing tools).
+\end{itemize}
+
+\paragraph{Topics.}
+Over the past few years, we've been working to improve this course.
+Be aware that, when studying for exams, this year's offering differs
+significantly from previous offerings. Near exam time, I'll indicate
+the types of exam questions that will still be relevant and those that
+won't be.~\\
+
+\begin{itemize}
+\item Introduction and definitions (defects, faults, failures) (1 week)
+\item \emph{Defining Test Suites}---finding interesting inputs and knowing when to stop looking (4 weeks)\\
+How do you generate test suites?
+\begin{itemize}
+\item open-ended exploratory testing;
+\item statement/branch coverage;
+\item graph-based models of program state; integrating design documentations; 
+\item automatically generating inputs: grammars, fuzzing.
+\end{itemize}~\\[-1em]
+How good is your test suite?
+\begin{itemize}
+\item coverage
+\item mutation
+\end{itemize}
+
+\item \emph{Engineering Test Suites} (3 weeks)
+\begin{itemize}
+\item JUnit (unit testing, end-to-end testing, regression testing)
+\item Selenium and other web-based testing
+\item mock objects
+\item refactoring tests
+\item refactoring code to be testable
+\item continuous integration
+\item flaky tests
+\end{itemize}
+
+\item \emph{Tools for Verification \& Validation} (3 weeks)\\
+I plan to include some intuition for why these tools work. List of tools may change.
+
+\begin{itemize}
+\item concept: static vs. dynamic analysis
+\item static approaches: type systems, immutability, compiler warnings, software model checking, JML tools. Coverity, Facebook Infer, FindBugs, aComment
+\item dynamic approaches: valgrind/Clang address sanitizer, assertions, concurrency detectors: races, missing locks
+\item human-based approaches: code review, bug reporting
+\end{itemize}
+
+\item Bonus: debugging and the scientific method (1 week) \\
+(reference: Andreas Zeller. \emph{Why Programs Fail: a Guide to Systematic Debugging.})
+\end{itemize}
+
+\section*{Reference Material}
+Course notes (posted to the git repository) are your best bet.
+
+\newpage
+\section*{Evaluation}
+This course includes assignments, a midterm, a course project, and a final
+examination.
+
+\begin{tabular}{lrl}
+3 individual assignments & 20\% & (6 2/3\% each) \\
+Course project (in groups, up to 3/group) & 15\% \\
+Midterm & 15\% \\
+Final exam & 50\% \\
+\end{tabular}
+
+\noindent The midterm and final exams will be open-book, open-notes. 
+
+\paragraph{Schedule.} Assignment handin will be done through the git server at {\tt ecgit.uwaterloo.ca}.\\[-1em]
+\begin{center}
+\begin{tabular}{ll}
+January 16	&A1 out\\
+January 30	&A1 due, A2 out\\
+February 17 &Midterm (6:30-8PM)\\
+February 27	&A2 due, A3 out\\
+March 24	&A3 due\\
+April 3 	&Last lecture; project due\\
+Exam period	&Final exam
+\end{tabular}~\\
+\end{center}
+You can also find the dates on the following Google calendar:\\
+\hspace*{3em}\url{juj4cn4vtkeivufdvd6iqo6h8o@group.calendar.google.com}
+
+\section*{Policies}
+
+\paragraph{Group work.} The project will be done in groups.
+You may discuss assignments with others, but I expect each of
+you to do the assignment independently. I will follow UW's Policy 71
+if I discover any cases of plagiarism. I will not use turnitin.
+
+\paragraph{Lateness.} You have 2 days of lateness to use on assignment 
+submissions throughout the term. Each day you hand in an assignment
+late consumes one of the days of lateness. If you consume all of your
+late days, assignments that are still late will get 0. Missed assignments get 0.
+e.g. you may hand in A1 one day late and A2 one day late if
+you hand in A3 on time.  Or you can hand in A1-A2 on time and
+A3 two days late.\\[1em]
+
+\noindent \begin{tabular}{ @{\hspace{0.25in}}l l }
+Academic integrity: & \url{http://uwaterloo.ca/academicintegrity/}\\
+Petition \& Grievance:
+& \url{http://secretariat.uwaterloo.ca/Policies/policy70.htm}\\
+Discipline: & \url{http://secretariat.uwaterloo.ca/Policies/policy71.htm} \\
+Penalties: 
+&  \url{http://secretariat.uwaterloo.ca/guidelines/penaltyguidelines.htm}\\
+Appeals: & \url{http://secretariat.uwaterloo.ca/Policies/policy72.htm} \\
+AccessAbility: & \url{https://uwaterloo.ca/disability-services/}
+\end{tabular}
+
+
+\end{document}
