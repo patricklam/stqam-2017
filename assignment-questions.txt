@@ -1,0 +1,21 @@
+## A1 (due after L12)
+
+exploratory testing of an ACM contest solution type program, or a webapp (WaterlooWorks) (L5)
+navigation structure of a webapp (dart) -> provide fix (L8-9)
+provide adequate statement and branch coverage of some significant code; argue that your coverage is sufficient (L6-7)
+test cases from design docs (L8-9)
+input space modelling (L8-11)
+
+## A2 (due after L20)
+
+test automation: JUnit/selenium (L17-19), coverage of automated tests (L6-7, 12)
+fuzzing (compilers) - develop fuzzing tool (L10-11)
+mutation testing (L10-11)
+
+## A3 (due after L32)
+
+improve the test cases that you did in A1 given the actual software
+create a mock (L20)
+refactor a test case (L21-22)
+make a test not flaky (L23)
+rewrite code to make it testable (L22)

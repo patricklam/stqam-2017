@@ -1,0 +1,10 @@
+Viable exam questions:
+
+- test case refactoring
+- improve coverage at function scale
+- mutation
+- definitions (e.g. fault/failure/defect)
+- test cases from design docs
+- input space coverage
+- static vs dynamic analysis; false positive vs false negative; type systems
+- test plan for a method/class [in broad sense; include method/class rewriting]
