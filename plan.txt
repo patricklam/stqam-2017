@@ -1,0 +1,87 @@
+## Introduction and definitions (defects, faults, failures) (1 week: L1-3)
+
+L1: introduction
+L2: faults, errors, failures; dealing with an imperfect world; testing vs debugging (old L2)
+L3: in-class exercise on faults/errors/failures; validating a test suite---line intersection (old L3)
+
+L3 is (M) January 9.
+
+## Defining Test Suites (4 weeks: L4-L16)
+
+L4: static vs dynamic/"complete testing"/test cases/observability&controlability/test requirements/quantifying coverage/black-box vs white-box
+L5: open-ended exploratory testing (http://katrinatester.blogspot.com.au/2016/12/the-testing-pendulum-finding-balance-in.html)
+L6, L7: statement/branch coverage (old L6, L9 on CFGs)
+L8, L9: graph-based models/design documentation (round trips; some content from old L07, L22)
+
+L9 is (M) January 23. Target cutoff date for A1 material.
+
+L10, L11: automatically/programmatically generating test suites -- grammars (old L17, L29, L32, L33), fuzzing (old L33)
+L12: how good can your test suite be? coverage
+
+L12 is (M) January 30. A1 due.
+
+L13/L14/L15/L16: how good? mutation -> PIT for Java (old L17/L18/L19/L20)
+
+L16 is (W) Feb 8.
+
+## Engineering test suites (L17-25)
+
+L17: on test automation (http://www.ontestautomation.com/not-so-useful-metrics-in-test-automation/) At its heart, test automation is – or at least should be – meant to increase the effectiveness of testing efforts. 
+L18: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
+L19: Selenium, web testing (L34)
+
+midterm is after L20
+
+L20: answer questions about midterm; mock objects (L30, brief)
+
+[reading week, A2 due at end of reading week]
+
+L21, L22: test refactoring (old L30), refactoring code to be testable (old L36---RPCs, RESTful APIs, micro-services), badly designed tests (old L35)
+L23: continuous integration (Travis), flaky tests
+plam away for L22, L23
+
+L24: TBA
+L25: testing infrastructure/DevOps (see also P4P L35)
+https://puppet.com/blog/hitchhikers-guide-to-testing-infrastructure-as-and-code
+
+## Tools for V&V (L26-34)
+
+L26: static vs dynamic analysis
+
+L26 is March 10
+
+L27: static analysis I [fewer tools, more depth] [concurrency, old L10] [aComment, old L11]
+L28: static analysis II [type systems, immutability, compiler warnings, software model checking, JML tools. Coverity, FindBugs]
+L29: static analysis III [FB Infer / Clang address sanitizer] 
+L30: dynamic analysis I [assertions, race detectors, valgrind]
+
+ECE FYDP on March 21
+
+L31: dynamic analysis II [bugfinding, must-belief vs may-belief]
+L32: dynamic analysis III
+
+A3 due on March 24 (L32)
+
+L33: human-based approaches: code review (old L34), bug reporting
+
+SE FYDP on March 28
+
+L34: reporting bugs (old L28)
+
+info:
+
+tools (old L11, L12)- Korat, JPF, FindBugs, Daikon, ESC/Java, valgrind, cppcheck, 
+    clang static analyzer, spling, pex, klee, coverity, grammatech codesonar, FB Infer
+
+https://github.com/google/sanitizers/wiki/AddressSanitizerAlgorithm
+https://github.com/google/sanitizers/wiki/AddressSanitizerComparisonOfMemoryTools
+http://maintainablecode.logdown.com/posts/245425-valgrind-is-not-a-leak-checker
+http://btorpey.github.io/blog/2014/03/27/using-clangs-address-sanitizer/
+http://clang.llvm.org/docs/AddressSanitizer.html
+
+## Debugging (L35-36)
+
+L35:
+L36:
+
+reference: Andreas Zeller. \emph{Why Programs Fali: a Guide to Systematic Debugging.}
