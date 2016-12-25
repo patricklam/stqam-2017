@@ -18,6 +18,8 @@ L9 is (M) January 23. Target cutoff date for A1 material.
 L10, L11: automatically/programmatically generating test suites -- grammars (old L17, L29, L32, L33), fuzzing (old L33)
 L12: how good can your test suite be? coverage
 
+https://avandeursen.com/2012/12/21/line-coverage-lessons-from-junit/
+
 L12 is (M) January 30. A1 due.
 
 L13/L14/L15/L16: how good? mutation -> PIT for Java (old L17/L18/L19/L20)
