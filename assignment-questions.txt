@@ -8,9 +8,14 @@ input space modelling (L8-11)
 
 ## A2 (due after L20)
 
-test automation: JUnit/selenium (L17-19), coverage of automated tests (L6-7, 12)
-fuzzing (compilers) - develop fuzzing tool (L10-11)
-mutation testing (L10-11)
+
+# test cases from design docs (L8-9)
+maybe https://www.chromium.org/developers/design-documents/password-generation?
+or something that we generate for the course
+
+# test automation: JUnit/selenium (L17-19), coverage of automated tests (L6-7, 12)
+# fuzzing (compilers) - develop fuzzing tool (L10-11)
+# mutation testing (L10-11)
 
 ## A3 (due after L32)
 

@@ -10,13 +10,14 @@ significant code: guava ConfigurableMutableValueGraph?
 criteria - open-source Java code, maybe 1000 lines, use coverage tool of your choice
 
 ## question 2 (L5)
+next few questions are about the 'average' dart webapp
+
 exploratory testing of WaterlooWorks or average
 
-set up docker instance / patricklam.ca
+-> figure out what is an input
+-> set up docker instance / patricklam.ca
 
 ## question 3
-
-next few questions are about the 'average' dart webapp
 
 programmatically generate test cases of various sizes; try to create lifelike distribution of marks (SE averages (84.3), MATH 117 = 83.1 (80.3), CS 137 = 82.8 (81), ECE 140 = 89 (!) (76.9), ECE 105 = 82.2 (76.5))
 
