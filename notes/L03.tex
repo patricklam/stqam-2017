@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{3 --- January 9, 2017}{Winter 2017}{Patrick Lam}{version 2}
+
+\paragraph{Exercise: findLast.} Here's a faulty program.
+\begin{lstlisting}
+    static public int findLast(int[] x, int y) {
+        /* bug: loop test should be i >= 0 */
+        for (int i = x.length - 1; i > 0; i--) {
+            if (x[i] == y) {
+                return i;
+            }
+        }
+        return -1;
+    }
+\end{lstlisting}
+You might expect to be asked a question like this:
+\begin{enumerate}[(a)]
+    \item Identify the fault, and fix it.
+    \item If possible, identify a test case that does not execute the fault.
+    \item If possible, identify a test case that executes the fault, but does not result in an error state.
+    \item If possible, identify a test case that results in an error, but not a failure. (Hint: program counter)
+    \item For the given test case, identify the first error state. Be sure to describe the complete state.
+\end{enumerate}
+
+I asked you to work on that question in class. Here are some answers:
+
+\begin{enumerate}[(a)]
+\item The loop condition must include index 0: {\tt i >= 0}.
+\item This is a bit of a trick question. To avoid the loop condition, you must not enter the loop body. The only way to do that is to pass in {\tt x = null}. You should also state, for instance, {\tt y = 3}. The expected output is a {\tt NullPointerException}, which is also the actual output.
+\item Inputs where {\tt y} appears in the second or later position execute the fault but do not result in the error state; nor do inputs where {\tt x} is an empty array. (There may be other inputs as well.) So, a concrete input: {\tt x = \{2, 3, 5\}; y = 3}. Expected output = actual output = 1.
+\item One error input that does not lead to a failure is where {\tt y}
+  does not occur in {\tt x}. That results in an incorrect PC after the final executed iteration of the loop.
+ \item After running line 6 with {\tt i = 1}, the decrement occurs, followed by the evaluation of {\tt i > 0}, causing the PC to exit the loop (statement 8) instead of returning to statement 4. The faulty state is {\tt x = \{2, 3, 5\}; y = 3; i = 0; PC = 8}, while correct state would be {\tt PC = 4}.
+\end{enumerate}
+
+Someone asked about distinguishing errors from failures. These
+questions were about failures at the method level, and so a wrong
+return value would be a failure when we're asking about methods. In
+the context of a bigger program, that return value might not be
+visible to the user, and so it might not constitute a failure, just an
+error.
+
+\section*{Line Intersections}
+We then talked about different ways of validating a test suite.
+Consider the following Python code, found by Michael Thiessen
+on stackoverflow (\url{http://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other}).
+
+\begin{lstlisting}[language=python]
+class LineSegment:
+    def __init__(self, x1, x2):
+        self.x1 = x1; self.x2 = x2;
+
+def intersect(a, b):
+    return (a.x1 < b.x2) & (a.x2 > b.x1);
+\end{lstlisting}
+
+We could construct test suites that:
+\begin{itemize}
+\item execute every statement in {\tt intersect} (statement coverage). Well, that's not very useful; any old test case
+  will do that. There are no branches, so what we'll call edge coverage
+  doesn't help either.
+\item feed random inputs to {\tt intersect}; unfortunately,
+  interesting behaviours are not random, so it won't help much
+  in general.
+\item check all outputs of {\tt intersect} (i.e. a test case with
+  lines that intersect and one with lines that don't intersect): we're
+  getting somewhere---that will certify that the method works in some
+  cases, but it's easy to think of situations that we missed.
+\item check different values of clauses {\tt a.x1 < b.x2} and {\tt a.x2 > b.x1} (logic coverage)---better than the above coverage criteria, but still misses interesting behaviours;
+  \item analyze possible inputs and cover all interesting combinations of inputs (input space coverage)---can create an exhaustive test suite, if your analysis is sound.
+\end{itemize}
+
+Let's try to prove correctness of {\tt intersect}. There's an old
+saying about testing---supposedly, it can only find the presence of
+bugs, not their absence. This is not completely true, especially if
+you have reliable software that automatically constructs an exhaustive
+test suite.  But that is beyond the state of the practice in 2015, for
+the most part.
+
+\paragraph{Inputs to {\tt intersect}.} There are essentially
+four inputs to this function. Rename them $aAbB$, for {\tt a.x1},
+{\tt a.x2}, etc.
+\begin{itemize}
+\item Let's first assume that all points are distinct. We should
+  make a note to ourselves to check violations of this, as well:
+  we may have $a = A, a = b, a = B$, and symmetrically for $B$:
+  $b = a, b = A, b = B$.
+  \item For the purpose of the analysis, let's assume that $a < b$;
+    when constructing test cases, we can swap $a$ and $b$ around.
+    That's why there are duplicate assert statements below.
+  \item Without loss of generality, we can assume that
+$a < A$ and $b < B$. (We ought to update the constructor if we
+    want to make that assumption.) 
+\end{itemize}
+With these assumptions, we have to test the three possible permutations
+$aAbB$, $abAB$, and $abBa$. It is simple to construct test cases
+for these permutations, using Python's unittest framework:
+\begin{lstlisting}
+      def test_aAbB(self):
+        a = LineSegment(0,2)
+        b = LineSegment(3,7)
+        self.assertFalse(intersect(a,b))
+        self.assertFalse(intersect(b,a))
+
+    def test_abAB(self):
+        a = LineSegment(0,4)
+        b = LineSegment(3,7)
+        self.assertTrue(intersect(a,b))
+        self.assertTrue(intersect(b,a))
+
+    def test_abBA(self):
+        a = LineSegment(0,4)
+        b = LineSegment(1,2)
+        self.assertTrue(intersect(a,b))
+        self.assertTrue(intersect(b,a))
+\end{lstlisting}
+Those test cases pass. However, if you construct test cases for
+equality (as I've committed to the repository), you see that the given {\tt
+  intersect} function fails on line segments that intersect only at a
+point. Replacing \verb+<+ with \verb+<=+ and \verb+>+ with \verb+>=+
+fixes the code.
+
+\end{document}
