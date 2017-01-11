@@ -1,0 +1,192 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{4 --- January 11, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\paragraph{Last time.} We saw two examples: {\tt findLast}, where we did
+an example about identifying faults, errors, and failures,
+and finding distinguishing test cases; and the line intersection
+example, where we informally reasoned about the correctness of
+that algorithm and demonstrated it using testing. The reasoning
+is a lot more ad-hoc than what we've seen in algorithms courses.
+
+\section*{About Testing}
+We can look at testing statically or dynamically.
+\paragraph{Static Testing} \hspace*{-1em} (ahead-of-time): this includes static analysis, which is typically automated and runs at compile time (or, say, nightly), as well human-driven static testing---typically code review.
+\paragraph{Dynamic Testing}  \hspace*{-1em}  (at run-time): observe program behaviour by executing it; includes black-box testing (not looking at code) and white-box testing (looking at code to develop tests).
+
+Usually the word ``testing'' means \emph{dynamic testing}.
+
+\paragraph{Naughty words.} People like to talk about ``complete testing'', ``exhaustive testing'', and ``full coverage''. However, for many systems, the number of potential inputs is infinite. It's therefore impossible to completely test a nontrivial system, i.e. run it on all possible inputs. There are both practical limitations (time and cost) and theoretical limitations (i.e. the halting problem).
+
+The first part of the course is about defining test suites and aims to give you tools to answer the
+question ``when should I stop testing?'' Reiterating the syllabus, I might stop:
+
+\begin{itemize}
+\item \emph{When I run out of time.} Open-ended exploratory testing; automatic input generation.
+\item \emph{When I am close enough to being exhaustive.} Coverage of: (enough) statements, branches, program states, use cases.
+\end{itemize}
+
+I'll again put in a shout-out to mutation as being another way to validate whether one's test
+suite is good enough.
+
+\newpage
+\section*{Test cases}
+As we've seen in the last two lectures, a \emph{test case} contains:
+\begin{itemize}
+\item what you feed to software; and
+\item what the software should output in response.
+\end{itemize}
+Our test cases have been easy to generate so far, but that's not always the case.
+
+\begin{defn}
+\emph{Observability} is how easy it is to observe the system's behaviour, e.g.
+its outputs, effects on the environment, hardware and software.
+\end{defn}
+
+\begin{defn}
+\emph{Controlability} is how easy it is to provide the system with
+needed inputs and to get the system into the right state.
+\end{defn}
+
+\subsection*{Anatomy of a Test Case}
+Consider testing a cellphone from the ``off'' state:
+
+\begin{center}
+\begin{tabular}{cccc}
+\Large $\langle$ on $\rangle$ & \Large 1 519 888 4567 & \Large $\langle$ talk $\rangle$ &
+    \Large $\langle$ end $\rangle$ \\
+\scriptsize prefix values & \scriptsize test case values & \scriptsize verification values & \scriptsize exit codes \\
+&& \multicolumn{2}{c}{$\overline{\mbox{~~~~~postfix values~~~~~}}$}
+\end{tabular}
+\end{center}
+
+\begin{defn} ~\\[-2em]
+
+\begin{itemize} 
+\item \emph{Test Case Values}: input values necessary to complete some execution of the software.\\
+  (often called the test case itself)
+\item \emph{Expected Results}: result to be produced iff program satisfies intended behaviour on a test case.
+\item \emph{Prefix Values}: inputs to prepare software for test case values.
+\item \emph{Postfix Values}: inputs for software after test case values;
+\begin{itemize}
+\item \emph{verification values}: inputs to show results of test case values;
+\item \emph{exit commands}: inputs to terminate program or to return it to initial state.
+\end{itemize}
+\end{itemize}
+\end{defn}
+
+\begin{defn} ~\\[-2em]
+
+\begin{itemize}
+\item \emph{Test Case}: test case values, expected results, prefix values, and postfix values necessary to evaluate software under test.
+\item \emph{Test Set}: set of test cases.
+\item \emph{Executable Test Script}: test case prepared in a form to be executable automatically and which generates a report.
+\end{itemize}
+\end{defn}
+
+\section*{On Coverage}
+Ideally, we'd run the program on the whole input space and find bugs. 
+Unfortunately, such a plan is usually infeasible: there are too many potential
+inputs. 
+
+\paragraph{Key Idea: Coverage.} Find a reduced space and cover that space. 
+
+We hope that covering the reduced space is going to be more exhaustive than
+arbitrarily creating test cases. It at least tells us when we can plausibly
+stop testing.
+
+The following definition helps us evaluate coverage.
+
+\begin{defn}
+A \emph{test requirement} is a specific element of a (software)
+artifact that a test case must satisfy or cover.
+\end{defn}
+We write TR for a set of test requirements; a test set may cover a
+set of TRs.
+
+Two software examples:
+\begin{itemize}
+\item cover all decisions in a program (branch coverage); each decision 
+gives two test requirements: branch is true; branch is false.
+\item each method must be called at least once; each method gives one test
+requirement.
+\end{itemize}
+
+\paragraph{Infeasible Test Requirements.} Sometimes, no test case will 
+satisfy a test requirement. For instance, dead code can make statement
+coverage infeasible, e.g.:
+
+\begin{verbatim}
+  if (false)
+    unreachableCall();
+\end{verbatim}
+
+or, a real example from the Linux kernel:
+\begin{verbatim}
+  while (0)
+    {local_irq_disable();}
+\end{verbatim}
+
+Hence, a criterion which says ``test every statement'' is going to be
+infeasible for many programs.
+
+\paragraph{Quantifying Coverage.} How good is a test set? It's great if it
+covers everything, but sometimes that's impossible.
+We can instead assign a number.
+\begin{defn}
+(Coverage Level). Given a set of test requirements TR and a test set $T$,
+the coverage level is the ratio of the number of test requirements
+satisfied by $T$ to the size of TR.
+\end{defn}
+
+
+\end{document}
