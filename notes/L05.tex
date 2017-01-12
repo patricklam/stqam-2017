@@ -1,0 +1,153 @@
+\documentclass[11pt]{article}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{5 --- January 13, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\paragraph{Last time.} We spent most of the time talking about the distinction between
+static and dynamic analysis of code. Static analysis finds all the
+things (perhaps too many), while dynamic analysis tells you exactly
+what happens on a particular execution (but you have to have the right
+inputs). We also looked at a JUnit test case
+(setup/teardown/establishing state/checking system under test
+actions); the test case we looked at was at
+\url{https://github.com/google/guava/blob/master/guava-tests/test/com/google/common/io/MoreFilesTest.java}. Finally,
+we introduced the notion of coverage and test requirements a bit more formally.
+
+
+\section*{Exploratory Testing}
+
+Exploratory testing is usually (but not always) carried out by
+dedicated testers. In that sense, it's somewhat different from the
+other testing activities in this course, which are more
+developer-focussed---our usual goal is learning, as developers, how to
+deploy better automated test suites for our software. Hallway
+usability testing, though, is an application of exploratory testing.
+Furthermore, the dedicated QA function is important, and we should
+learn about how it works.
+
+\paragraph{Resources.} James Bach has a shorter and a longer introduction 
+to exploratory testing:\\[-2em]
+\begin{itemize}[noitemsep]
+\item \url{http://www.satisfice.com/articles/what_is_et.shtml}
+\item \url{http://www.satisfice.com/articles/et-article.pdf}
+\end{itemize}
+There is an exhaustive set of notes on exploratory testing by Cem Kaner:\\[-2em]
+\begin{itemize}
+\item http://www.kaner.com/pdfs/QAIExploring.pdf
+\end{itemize}
+
+\begin{quote}
+``Exploratory testing is simultaneous learning, test design, and test execution.''
+\end{quote}
+Contrast this to scripted testing, where test design
+happens ahead of time and then test execution happens (repeatedly)
+throughout the product's development cycle. Often, when we think of
+dedicated QA teams, we think that they are manually executing scripted
+tests. In 2017, that is not a terribly effective use of workers.
+
+There is a continuum between scripted testing and exploratory testing.
+Good exploratory testing may use prepared scripts for certain tasks.
+
+\newpage
+\paragraph{Scenarios where Exploratory Testing Excels.} (from Bach's article)
+\begin{itemize}[noitemsep]
+\item providing rapid feedback on new product/feature;
+\item learning product quickly;
+\item diversifying testing beyond scripts;
+\item finding single most important bug in shortest time;
+\item independent investigation of another tester's work;
+\item investigating and isolating a particular defect;
+\item investigate status of a particular risk to evaluate need for scripted tests.
+\end{itemize}
+
+\paragraph{Exploratory Testing Process.} Exploratory testing should not be
+randomly bumbling around (we can call that ``ad hoc testing'')---the random
+approach finds bugs but isn't the most efficient at giving you an idea of how well
+the software works.
+
+\begin{itemize}[noitemsep]
+\item Start with a charter for your testing activity, e.g. ``Explore and analyze the product elements of the software.'' 
+These charters should be somewhat ambiguous.
+\item Decide what area of the software to test.
+\item Design a test (informally).
+\item Execute the test; log bugs.
+\item Repeat.
+\end{itemize}
+Exploratory testing shouldn't produce an exhaustive set of notes. Good testers will
+be able to reproduce the bugs that they encounter during their testing from brief notes.
+Taking full notes takes too long.
+
+The output from exploratory testing is at least a set of bug
+reports. It may also include test notes, which include overall
+impressions and a summary of the test strategy/thought
+process. Artifacts such as test data or test materials are also both
+inputs and outputs from exploratory testing.
+
+\paragraph{Example.} I recommend reading the example by James Bach in ``et-article.pdf''
+about the photo editing program (``ET in Action''). He describes how he used ET to evaluate
+software for Windows compatibility and found critical defects.
+
+\section*{In-class exercise: Exploratory testing of WaterlooWorks.}
+We will try out exploratory testing with WaterlooWorks. I believe that everyone should
+have access to the system, although for some of you there may be no jobs visible
+right now. 
+
+The charter will be ``Explore the overall functionality of WaterlooWorks''. Summarize
+in one or two sentences what the purpose of WaterlooWorks is. Identify the tasks that
+WaterlooWorks should be able to do and classify them as primary or contributing. Identify
+areas of potential instability. Test each function and record results (bugs).
+
+Of course, don't do things that have actual effects. Usually, testers would have access 
+to a development server and could test those areas more aggressively. But we are working
+with production systems here.
+
+
+\end{document}
