@@ -1,6 +1,6 @@
 ## A1 (due after L12)
 
-
+https://github.com/stympy/faker/blob/master/lib/locales/en.yml
 
 ## question 1
 
