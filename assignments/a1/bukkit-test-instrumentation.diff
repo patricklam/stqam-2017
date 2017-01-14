@@ -1,0 +1,172 @@
+diff --git a/pom.xml b/pom.xml
+index 4c5937ab..a6fdc120 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -91,6 +91,32 @@
+                     </reportPlugins>
+                 </configuration>
+             </plugin>
++            <!-- jacoco coverage plugin -->
++            <plugin>
++              <groupId>org.jacoco</groupId>
++              <artifactId>jacoco-maven-plugin</artifactId>
++              <version>0.7.8</version>
++              <configuration>
++                <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
++                <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
++              </configuration>
++              <executions>
++                <execution>
++                  <id>jacoco-initialize</id>
++                  <goals>
++                    <goal>prepare-agent</goal>
++                  </goals>
++                </execution>
++                <execution>
++                  <id>jacoco-site</id>
++                  <phase>package</phase>
++                  <goals>
++                    <goal>report</goal>
++                  </goals>
++                </execution>
++              </executions>
++            </plugin>
++            <!-- end jacoco plugin -->
+         </plugins>
+     </build>
+     <dependencies>
+diff --git a/src/test/java/org/bukkit/TestServer.java b/src/test/java/org/bukkit/TestServer.java
+index 2d840320..9a070855 100644
+--- a/src/test/java/org/bukkit/TestServer.java
++++ b/src/test/java/org/bukkit/TestServer.java
+@@ -6,6 +6,7 @@ import java.lang.reflect.Proxy;
+ import java.util.Map;
+ import java.util.logging.Logger;
+ 
++import org.bukkit.command.CommandSender;
+ import org.bukkit.command.SimpleCommandMap;
+ import org.bukkit.plugin.PluginManager;
+ import org.bukkit.plugin.SimplePluginManager;
+@@ -71,6 +72,17 @@ public class TestServer implements InvocationHandler {
+                         }
+                     }
+                 );
++            methodMap.put(
++                    Server.class.getMethod("dispatchCommand", CommandSender.class, String.class),
++                    new MethodHandler() {
++                        public Object handle(TestServer server, Object[] args) {
++                            CommandSender commandSender = (CommandSender) args[0];
++                            String msg = (String) args[1];
++                            commandSender.sendMessage(msg);
++                            return true;
++                        }
++                    }
++                );
+             methods = methodMap.build();
+ 
+             TestServer server = new TestServer();
+diff --git a/src/test/java/org/bukkit/command/FormattedCommandAliasTest.java b/src/test/java/org/bukkit/command/FormattedCommandAliasTest.java
+new file mode 100644
+index 00000000..b4416168
+--- /dev/null
++++ b/src/test/java/org/bukkit/command/FormattedCommandAliasTest.java
+@@ -0,0 +1,99 @@
++package org.bukkit.command;
++
++import static org.hamcrest.CoreMatchers.is;
++import static org.junit.Assert.assertThat;
++import static org.junit.Assert.assertEquals;
++
++import org.junit.*;
++
++import java.util.Set;
++import org.bukkit.permissions.Permission;
++import org.bukkit.permissions.PermissionAttachment;
++import org.bukkit.permissions.PermissionAttachmentInfo;
++import org.bukkit.plugin.Plugin;
++import org.bukkit.Server;
++import org.bukkit.Bukkit;
++import org.bukkit.TestServer;
++import org.bukkit.command.CommandSender;
++
++interface MockCommandSender extends CommandSender {
++    public String getLastMessage();
++}
++public class FormattedCommandAliasTest {
++    private String INVALID_REPLACEMENT_TOKEN = "Invalid replacement token";
++    private String INTERNAL_ERROR =
++        org.bukkit.ChatColor.RED + "An internal error occurred while attempting to perform this command";
++    private String MISSING_REQUIRED_ARGUMENT = "Missing required argument ";
++
++    private static final Server server = TestServer.getInstance();
++
++    MockCommandSender mockCommandSender = new MockCommandSender() {
++            private String lastMessage;
++
++            public String getLastMessage() { return lastMessage; }
++            public void sendMessage(String message) { lastMessage = message; }
++            public void sendMessage(String[] messages) {}
++            public Server getServer() { return null; }
++            public String getName() { return "mock command sender"; }
++
++            public boolean isPermissionSet(String name) {
++                return false;
++            }
++
++            public boolean isPermissionSet(Permission perm) {
++                return false;
++            }
++
++            public boolean hasPermission(String name) {
++                return false;
++            }
++
++            public boolean hasPermission(Permission perm) {
++                return false;
++            }
++
++            public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
++                return null;
++            }
++
++            public PermissionAttachment addAttachment(Plugin plugin) {
++                return null;
++            }
++
++            public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value, int ticks) {
++                return null;
++            }
++
++            public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
++                return null;
++            }
++
++            public void removeAttachment(PermissionAttachment attachment) {
++
++            }
++
++            public void recalculatePermissions() {
++
++            }
++
++            public Set<PermissionAttachmentInfo> getEffectivePermissions() {
++                return null;
++            }
++
++            public boolean isOp() {
++                return false;
++            }
++
++            public void setOp(boolean value) { }
++        };
++
++    @Test
++    public void testEmpty() {
++        FormattedCommandAlias fca = new FormattedCommandAlias("dummy", new String[0]);
++        mockCommandSender.sendMessage("zzz");
++        fca.execute(mockCommandSender, "", new String[0]);
++        assertEquals("zzz", mockCommandSender.getLastMessage());
++    }
++
++    // add more tests here to achieve 100% statement coverage
++}
