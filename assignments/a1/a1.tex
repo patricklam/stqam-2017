@@ -21,7 +21,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 1, version 1}
+Assignment/Lab 1, version -1}
 \author{Patrick Lam \\
 {Release Date:  January 16, 2017} \\
 }
@@ -36,12 +36,14 @@ Assignment/Lab 1, version 1}
 {\bf Submit: via ecgit }\\
 \end{center}
 
+% due after L12
+
 %Please download a1-skeleton.tar.gz from the course repository to get the necessary source code and 
 %test cases needed for finishing this assignment/lab. 
 
-An account on {\tt ecelinux.uwaterloo.ca} is available to you.
-Several of the resources required for this assignment are already installed on these servers, but can also be downloaded independently.
-If you are attempting to connect to a server from off campus, remember you will need to connect to the University's VPN first: \url{https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn/about-virtual-private-network-vpn}
+%% An account on {\tt ecelinux.uwaterloo.ca} is available to you.
+%% Several of the resources required for this assignment are already installed on these servers, but can also be downloaded independently.
+%% If you are attempting to connect to a server from off campus, remember you will need to connect to the University's VPN first: \url{https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn/about-virtual-private-network-vpn}
 
 After setting up your ssh key at {\tt http://ecgit.uwaterloo.ca}, \\ fork the provided git repository at {\tt git@ecgit.uwaterloo.ca:se465/1171/a1}:
 
@@ -56,313 +58,144 @@ but don't do that if you're in the course---it'll make submitting harder.)
 
 I expect each of you to do the assignment independently. I will follow UW's Policy 71 for all cases of plagiarism.
  
+\section*{Vagrant}
+
  \section*{Submission Instructions:} 
  Please read the following instructions carefully. {\bf If you do not follow the instructions, you may be 
-penalized up to 5 points. } Illegible answers receive no points.
- 
- \vspace{0.03in}
-%{\bf Electronic submission:} 
-Go to ``Assessments" $-\rangle$ ``Dropbox" $-\rangle$ ``Submit A1" on LEARN. 
-Submit only one file in .tar.gz format. Please name your file 
+penalized up to 5 points. }
 
-          {\small $<$FirstName$>$-$<$LastName$>$-$<$StudentNo$>$.tar.gz 
-
-For example, use John-Smith-12345678.tar.gz if you are John Smith with student No 12345678.
-{\em You must include your file name as part of your submission comments}.
-The .tar.gz file should contain the following items:
-
- \begin{itemize}
- \item a single pdf file ``a1\_sub.pdf''. 
-The first page must include your full name, 8-digit student number, your course number (one of ECE453, CS447, ECE653, CS647, \& SE465) and section, and your uwaterloo email address. 
- %, and  the following table:
+TODO 
  
-\item a directory ``q1'' that contains your code (source code only; no binaries or object files) for Question 1 
-\item ``TestM.java''
- %, and ``CFG.png'' or ``CFG.jpg'' 
- for Question 3, and 
-\item ``CFGTest.java'' and ``CFG.java'' for Question 4.  
-\end{itemize}
- 
-You can submit multiple times.  After submission, {\bf please view your submissions to make sure you have uploaded the right files/versions}.
-%+It's git, so you can submit multiple times. After submission, {\bf please re-clone your submissions to make sure you have uploaded all necessary files}.
+It's git, so you can submit multiple times. After submission, {\bf please re-clone your submissions to make sure you have uploaded all necessary files}.
  
  
  \begin{center}
  \begin{tabular}{|c|c|c|}
  \hline
  Question   &  TA in Charge \\ \hline
-1 & Edmund, Thibaud \\ \hline
-2 & Taiyue, Abdel \\ \hline
-3 & Song, Parsa \\ \hline
-4 & Jinqiu, Mike \\ \hline
+1 &  \\ \hline
+2 &  \\ \hline
+3 &  \\ \hline
+4 &  \\ \hline
  \end{tabular}
  \end{center}
 
 \newpage
 
 \section*{Question 1 (10 points)}
-Write one simple program that prints out the value of -5 modulo 2 (e.g., -5\%2 in C) in each of the following 4 programming languages: C/C++, Java, Perl, and Python. You will write 4 programs in total. 
-Report what you have found and the reason for this discrepancy. 
-Discuss at least 2 different strategies to cope with such a problem. 
-Hint: think about what can change: developers, compilers, standards, etc.
+For this question, you will write JUnit tests for the {\tt
+  FormattedCommandAlias} class of the Bukkit Minecraft server API to
+achieve 100\% statement coverage.
+
+The provided Vagrant image includes a slightly modified version of
+Bukkit in the \url{~/shared/q1} directory (bukkit diff also available on
+github in \url{assignments/a1/bukkit-test-instrumentation.diff}.  In
+particular, I added a skeleton test class for {\tt
+  FormattedCommandAlias}, called {\tt FormattedCommandAliasTest}.
+
+You can run the tests in the VM with the command {\tt mvn test}.  To
+generate the Jacoco coverage report, use {\tt mvn package}. You'll
+find the resulting reports in
+\url{~/shared/q1/target/site/jacoco/org.bukkit.command}.
+
+\paragraph{Your task.} Create JUnit unit tests that achieve 100\% statement 
+coverage for the {\tt org.bukkit.command.FormattedCommandAlias} class
+and that verify the results of the computation.
+
+Marking scheme: We will mark your modified {\tt
+  org.bukkit.command.TestFormattedCommandAlias} class.  5 points for
+coverage (full marks for 100\% statement coverage, nonlinearly scaled
+down for less), 5 points for your tests having passing assertions that
+verify the output. You will get 0 points if your code doesn't compile.
 
 \section*{Question 2 (10 points)} 
-Below is a faulty {\em Java} program, which includes a test case that results in a failure. The if-statement needs to take account of negative values. A possible fix is:
-\begin{verbatim} if (x[i]%2 != 0) \end{verbatim}
-Answer the following questions for this program. %Note: Assume short-circuit boolean evaluation for these questions.
+The next 4 questions are about the ``average'' Dart webapp, which I've
+also included in the Vagrant image. I developed this webapp to help me
+evaluate transfer requests. It is heavily based on the ``Tour of
+Heroes'' Angular Dart demo, with additional help from the ``Nest o' Pirates'' 
+Dart server example. You can find an instance of the webapp
+running at \url{https://patricklam.ca:8088/average}, although anyone
+can modify the data on that instance. The vagrant image also includes
+the webapp. The companion ``howto'' document describes how to start
+the webapp. Once started, you can navigate to your own copy of the
+webapp at \url{http://localhost:8088/average} on your computer.
 
+In this question, you will perform exploratory testing on ``average''.
+The charter will be ``Explore the overall functionality of
+average''. (1 points) Summarize in one or two sentences what you
+perceive as the goal of ``average''. (5 points) Identify the tasks
+that ``average'' should be able to do and classify them as primary or
+contributing. (You probably want to do this in parallel with your
+exploratory testing). (1 points) Identify areas of potential
+instability. (3 points) Produce exploratory testing notes summarizing
+your findings (one or two paragraphs); in Question 3 you will report a
+bug, so no need to do that here.
+
+\section*{Question 3 (10 points)}
+Identify a failure (bug) in the ``average'' webapp. Write down a sequence of
+steps to reproduce the bug. Implement a fix for the bug and explain the
+fix. Show the incorrect and correct outputs. (Screenshots are probably
+your best bet).
+
+(Think about the program's input space and poke at corners of the
+input space.)
+
+\section*{Question 4 (10 points)}
+Draw a graph summarizing the navigation structure of ``average''.
+Nodes are pages with distinct URLs. Edges are links between these
+pages as realized by hyperlinks in the app. Submit your graph.
+Identify the dead end (node which has no successors) in the navigation
+graph and submit a patch which corrects it.
+
+\section*{Question 5 (10 points)}
+The file ``shared/average/fake-data-small.sh'' 
+contains some fake student and course
+data.  Your task is to evaluate the scalability of ``average''. To do
+so, programmatically generate test cases of various sizes. 
+
+The scalability parameter to investigate is the number of students.
+students.  
 \begin{itemize}
-\item [(a)] If possible, identify a test case that does not execute the fault.
-\item [(b)] If possible, identify a test case that executes the fault, but does not result in an error state.
-\item [(c)] If possible, identify a test case that results in an error, but not a failure. 
-\item [(d)] For the test case ({\tt x = [-10, -9, 0, 99, 100]}, expected output: 2), identify the first error state. Describe the complete state.
+\item Each fake student should give rise to one REST API call to
+``/student'' and one to ``/student\_enrolment'', generating the
+student and the enrolment in 1A. I recommend randomly drawing the
+student's program from a small set that you manually create. 
+You may also want to create fake names using a Faker library e.g.
+\url{https://github.com/stympy/faker/blob/master/lib/locales/en.yml}.
+\item Create a fixed set of courses. Mine are randomly generated but
+yours don't have to be. 
+\item For each student, generate fake course marks. 
+You should generate the course marks randomly about a mean with a given
+standard deviation.
 \end{itemize}
 
-%\begin{center}\pgfimage[height=6cm]{odd}\end{center}
-\begin{lstlisting}
-public static int odd(int[] x)  {
-// Effects: if x==null throw NullPointerException, 
-// else return the number of elements in x that are odd
-	int count = 0;
-	for (int i =0; i < x.length; i++) {
-		if (x[i]%2==1) {
-			count++;
-		}
-	}
-	return count;
-}
-// test: x = [-10, -9, 0, 99, 100]
-// Expected: 2
-\end{lstlisting}
+Incidentally, SE 2021 courses had the following data: 
+\begin{tabular}{lll}
+& mean & $\sigma$\\
+MATH 115 & 85.1 & 12.2 \\
+MATH 117 & 83.0 & 12.6 \\
+ECE 140 & 88.9 & 11.5 \\
+ECE 105 & 82.2 & 13.0 \\
+CS 137 & 82.5 & 10.6
+\end{tabular}
 
-\section*{Question 3 (20 points)} 
+Empirically determine the scalability of the app; the easier way is to
+manually time the JavaScript execution time (Chrome's developer tools
+include a Timeline), and the harder (but better) way is to develop a
+test harness.  Include the data points that you collect. Let's say
+that a running time over 1 second is unacceptable.
 
-(Adapted from the original version by Patrick Lam.)
-
-Consider the following (contrived) program:
-
-{\scriptsize
-\begin{lstlisting}[language=Java]
-class M {
-	public static void main(String [] argv){
-		M obj = new M();
-		if (argv.length > 0)
-			obj.m(argv[0], argv.length);
-	}
-	
-	public void m(String arg, int i) {
-		int q = 1;
-		A o = null;
-		Impossible nothing = new Impossible();
-		if (i == 0)
-			q = 4;
-		q++;
-		switch (arg.length()) {
-			case 0: q /= 2; break;
-			case 1: o = new A(); new B(); q = 25; break;
-			case 2: o = new A(); q = q * 100; // no break
-			default: o = new B(); break;
-		}
-		if (arg.length() > 0) {
-			o.m();
-		} else {
-			System.out.println("zero");
-		}
-		nothing.happened();
-	}
-}
-
-class A {
-	public void m() { 
-		System.out.println("a");
-	}
-}
-
-class B extends A {
-	public void m() { 
-		System.out.println("b");
-	}
-}
-
-class Impossible{
-	public void happened() {
-		// "2b||!2b?", whatever the answer nothing happens here
-	}
-}
-\end{lstlisting}
-}
-
-\begin{itemize}
-\item
-[(a)] Using the minimal number of nodes (hint: 11), draw a Control Flow Graph (CFG) for method {\tt M.m()} and include it in your a1\_sub.pdf. The CFG should be at the level of basic blocks. 
-%using any computer diagrams or drawing tools such as Paint, Google Docs, MS Visio, Photoshop, etc. Be sure to label all nodes and edges, and include proper code sections in each of the nodes. Submit it as a JPG or PNG image file as part of your electronic submission package. 
-See the lecture notes on {\em Structural Coverage} and {\em CFG} for examples.
-
-\item
-[(b)] List the sets of Test Requirements (TRs) with respect to the CFG you drew in part (a) for each of the following coverages: node coverage; edge coverage; edge-pair coverage; and prime path coverage. In other words, write 
-four sets: $\mathit{TR}_{\mathit{NC}}$,  $\mathit{TR}_{\mathit{EC}}$, $\mathit{TR}_{\mathit{EPC}}$, and $\mathit{TR}_{\mathit{PPC}}$. If there are infeasible test requirements, list them separately and explain why they are infeasible.
-
-\item
-[(c)] Using {\tt q3/TestM-skeleton.java} as a starting point, write one JUnit Test Class that achieves, for method {\tt M.m()}, each of the following coverages: (1) node coverage but not edge coverage; (2) edge coverage but not edge-pair coverage; (3) edge-pair coverage but not prime path coverage; and (4) prime path coverage.  In other words, you will write four test sets (groups of JUnit test functions) in total. One test set satisfies (1), one satisfies (2), one satisfies (3), and the last satisfies (4), if possible. If it is not possible to write a test set to satisfy (1), (2), (3), or (4), explain why. For each test written, provide a simple documentation in the form of a few comment lines above the test function, listing which TRs are satisfied by that test. Consider feasible test requirements only for this part. 
-\end{itemize}
-
-Our ECE Linux systems (ecelinux.uwaterloo.ca)  have JUnit installed (in  /opt/). If you have any questions regarding access to these machines, please contact our lab instructor Bernie. 
-%If you use your own machine, you can get the JUnit jar file here: \url{https://github.com/downloads/KentBeck/junit/junit-4.8.2.jar}. 
-JUnit is included in standard Java code development environments such as Eclipse.
-
-The discussion about JUnit 3 and JUnit 4 may be useful for Q3 and Q4:\\ \url{http://www.ibm.com/developerworks/java/library/j-junit4.html}
-
-\section*{Question 4 (30 points)} 
-
-(Adapted from the original version by Sarfraz Khurshid)
-
-You are to implement and test a class that will construct a partial\footnote{This assignment ignores the labels that are traditionally annotated 
-on nodes and edges, as well as the edges that correspond to method invocations or {\tt jsr[ w]} bytecodes.} 
-control-flow graph from the bytecode\footnote{\url{http://java.sun.com/docs/books/jvms/second_edition/html/VMSpecTOC.doc.html}} of a given
-Java class using the ASM framework, version 4.0 (\url{http://asm.ow2.org}). 
-You can download \url{http://download.forge.objectweb.org/asm/asm-4.0-bin.zip} and use all/asm-all-4.0.jar.
-%You can download the ASM jar file from \url{http://download.forge.objectweb.org/asm/asm-4.0.jar}}. 
-%A: You can find other relevant information and files from
-%http://download.forge.objectweb.org/asm/asm4-guide.pdf, 
-%http://download.forge.objectweb.org/asm/asm4-guide.zip, 
-%and 
-%http://asm.ow2.org. 
-If you use ecelinux machines, the jar file is in directory /opt/. 
-You will also need JUnit for this question.
-%Java class using the ASM framework, version 4.0\footnote{\url{http://download.forge.objectweb.org/asm/asm-4.0.jar}}. 
-%%You need to download the jar file, third from the top.
-%The junit jar files can be downloaded from\footnote{\url{https://github.com/KentBeck/junit/downloads}}. You can download junit-4.10.jar Basic jar if you
-%don't plan to use an IDE to complete your project.
-
-%You can directly get the required jar files from the following link: 
-%\url{http://download.forge.objectweb.org/asm/asm-3.2.jar}
-
-To illustrate the CFG functionality, consider the following class C:
-
-{\scriptsize 
-\begin{lstlisting}
-   public class C {
-        int max(int x, int y) {
-            if (x < y) {
-                return y;
-            } else return x;
-        }
-   }
-\end{lstlisting}}
-\noindent
-which can be represented in bytecode as (e.g. the output of \\{\tt java -cp path/to/asm/asm-all-4.0.jar org.objectweb.asm.util.Textifier C.class, modified for readability}):
-{\scriptsize
-    \begin{lstlisting}
-    class C {
-        Code:
-        max(II)I
-        0: ILOAD 1
-        1: ILOAD 2
-        2: IF_ICMPGE L0
-        3: ILOAD 2
-        4: IRETURN
-        5: L0
-        6: FRAME SAME
-        7: ILOAD 1
-        8: IRETURN
-    }
-    \end{lstlisting}
-}
-%  Compiled from "C.java"
-%   public class ee379k.pset1.C extends java.lang.Object{
-%   public C();
-%      Code:
-%       0:   aload_0
-%       1:   invokespecial    #8; //Method java/lang/Object."<init>":()V
-%       4:   return
-%
-%   int max(int, int);
-%      Code:
-%       0:   iload_1
-%       1:   iload_2
-%       2:   if_icmpge        7
-%       5:   iload_2
-%       6:   ireturn
-%       7:   iload_1
-%       8:   ireturn
-%   }
-%\end{lstlisting}
-%}
-You can easily draw the corresponding control-flow graph.
-
-\paragraph{Graph representation of control-flow.}
-
-Implement the class {\tt CFG} to model control-flow in a Java bytecode
-program. A {\tt CFG} object has a set of nodes that represent bytecode
-statements and a set of edges that represent the flow of control
-(branches) among statements. Each node contains:
-
-\begin{itemize}
-\item an integer that represents the position (bytecode line number) of the statement in the method.
-\item a reference to the method (an object of {\tt org.objectweb.asm.tree.MethodNode}) containing the bytecode statement; and
-\item a reference to the class (an object of class {\tt org.objectweb.asm.tree.ClassNode}) that defines the method.
-\end{itemize}
-
-Represent the set of nodes using a {\tt java.util.HashSet} object, and
-the set of edges using a {\tt java.util.HashMap} object, which maps a
-node to the set of its neighbors. Ensure the sets of nodes and edges
-have values that are consistent, i.e., for any edge, say from node $a$
-to node $b$, both $a$ and $b$ are in the set of nodes. Moreover, ensure
-that for any node, say, $n$, the map maps $n$ to a non-null set,
-which is empty if the node has no neighbours.
-
-You can find a partial implementation of the {\tt CFG} class in {\tt CFG-skeleton.java}. 
-%\begin{center}
-%\url{a1/CFG_partial.java};
-%\end{center}
-You'll need to rename it to {\tt CFG.java} to continue. Your first task is to
-fill in the implementation of this class. Then you will write JUnit test cases to achieve some coverage criterion. 
-
-\paragraph{(a) Adding a node (2 points).}
-Implement the method {\tt CFG.addNode} such that it creates a new node
-with the given values and adds it to {\tt nodes} as well as initializes
-{\tt edges} to map the node to an empty set. If the graph already contains a
-node that is equivalent (under {\tt .equals()}) to the new node, {\tt addNode} does not
-modify the graph.
-
-\paragraph{(b) Adding an edge (2 points).}
-Implement the method {\tt CFG.addEdge} such that it adds an edge from
-the node {\tt (p1, m1, c1)} to the node {\tt (p2, m2, c2)}.  
-Your implementation should update {\tt nodes} to maintain its consistency with {\tt edges} as needed.  
-If the node does not exist in the graph, add the node. 
-
-\paragraph{(c) Deleting a node (4 points).}
-Implement the method {\tt CFG.deleteNode} such that it deletes a node
-with the given values, and all edges connected to the node, if any.  
-If the graph does not contain a
-node that is {\tt .equals} to the new node, {\tt deleteNode} does not
-modify the graph.
-Your implementation should update {\tt nodes} to maintain its consistency with
-{\tt edges} as needed.
+\section*{Submission summary}
+Here's what you need to submit.
+\begin{enumerate}
+\item 
+\end{enumerate}
 
 
-\paragraph{(d) Deleting an edge (4 points).}
-Implement the method {\tt CFG.deleteEdge} such that it deletes an edge from
-the node {\tt (p1, m1, c1)} to the node {\tt (p2, m2, c2)}.  
-%Your implementation should update nodes to maintain its consistency with edges as needed.
-% (Mehdi) should they delete orphan nodes? I think it is not necessary as they can always have some nodes that are not connected to other nodes.
-%(We may delete the last sentence of 'deleting an edge' part in this case). 
-
-\paragraph{(e) Reachability (6 points).}
-Implement the method {\tt CFG.isReachable} such that it traverses the
-control-flow graph starting at the node represented by {\tt (p1, m1,
-  c1)} and ending at the node represented by {\tt (p2, m2, c2)} to
-determine if there exists any path from the given start node to the
-given end node. If the start node or the end node are not in the
-graph, the method returns false. You must not use recursion for this question. 
-
-\paragraph{(f) Testing (12 points).} I have also provided a class {\tt
-  CFGTest} in {\tt CFGTest.java}, which exercises your {\tt CFG} class. 
-Examine this test class. Does it satisfy NC and EC for each of the method you write? Justify your answer. If it
-does not satisfy either coverage criterion, write additional
-JUnit test cases to satisfy one of them.
-Recall that to run JUnit tests in Junit 4.x, run {\tt java org.junit.runner.JUnitCore CFGTest},
-with the necessary jar and class files on your classpath.
-
+\section*{Bonus (0 points)}
+Figure out why the browser console displays a {\tt NullError} exception
+when loading the ``Courses'' page and propose a fix.
+(One could argue that this is an error, not a failure, since it is not visible
+to the user.)
 
 \end{document}
