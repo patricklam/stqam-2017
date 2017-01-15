@@ -164,7 +164,11 @@ graph and submit a patch which corrects it.
 \section*{Question 5 (10 points)}
 The file {\tt shared/average/fake-data-small.sh}
 contains some fake student and course
-data.  Your task is to evaluate the scalability of ``average''. (6 points) To do
+data. You can feed it to your instance of webapp by sourcing it: from a prompt 
+(either inside or outside the VM),
+type: ``\verb+. ./fake-data-small.sh+''
+
+Your task is to evaluate the scalability of ``average''. (6 points) To do
 so, programmatically generate test cases of various sizes. 
 
 The scalability parameter to investigate is the number of students.
