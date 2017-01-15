@@ -1,0 +1,87 @@
+\documentclass[10pt,hidelinks]{article}
+\usepackage[letterpaper, hmargin=0.75in, vmargin=0.75in]{geometry}
+\usepackage{graphicx}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{pgf}
+\usepackage{courier}
+
+\parindent 0in
+\parskip 1.5ex
+
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+
+\begin{document}
+
+\title{
+ECE453/CS447/SE465 \\
+Software Testing, Quality Assurance, and Maintenance\\
+Assignment/Lab 1 Technical Notes}
+\author{Patrick Lam \\
+{Release Date:  January 16, 2017} \\
+}
+\renewcommand{\today}{}
+\maketitle
+
+
+This document explains how to set up a working environment for
+Question 2--5. I've chosen to use Vagrant to make it easy to set up your
+environment. I've tested these instructions on Debian GNU/Linux as
+well as Windows. They should work on a Mac as well.
+
+\section*{Initializing your virtual machine}
+
+Install the following software:
+\begin{itemize}
+\item you should already have git, since you cloned the {\tt a1}
+  repository;
+\item virtualbox (\url{https://www.virtualbox.org/wiki/Downloads}); you don't need the extension pack or SDK;
+\item vagrant (\url{https://www.vagrantup.com/downloads.html}).
+\end{itemize}
+
+
+You should have an {\tt a1} directory after cloning the provided git
+repository as described in the main document. In that directory,
+you will find a {\tt Vagrantfile}, {\tt bootstrap.sh}, and the {\tt average} app
+(along with what you need for Q1 and templates for your answers).
+
+Next, you need to get vagrant to build your virtual machine.
+\begin{itemize}
+\item Go to the {\tt a1} subdirectory, and
+  \begin{quote}
+    \verb+$ vagrant up+
+  \end{quote}
+  This initializes your virtual machine and downloads the {\tt average} sample code into the virtual machine. \\
+  potential pitfall: you may get a cryptic error about ``VT-x not available''. In that case, you need to go to your computer's BIOS settings and enable virtualization extensions. (See \url{http://superuser.com/questions/22915/how-do-i-enable-vt-x} for information.)
+\item Start an {\tt ssh} seesion into the virtual machine you've just set up:
+  \begin{quote}
+    \verb+$ vagrant ssh+
+  \end{quote} ~\\[-1em]
+  potential pitfall: {\tt ssh} may not be set up/in the PATH on your (Windows) computer. Either put it there (git includes ssh), or ssh directly into your virtual machine:
+  \begin{quote}
+    \verb+> ssh vagrant@localhost -p 2222 -i <address-vagrant-ssh-tells-you>+
+  \end{quote}
+\end{itemize}
+Great! Now you have a working virtual machine.
+
+\section*{Starting the ``average'' webapp}
+\begin{itemize}
+\item building: in the {\tt shared/average} directory, run {\tt pub get; pub build}.
+\item running: in that same directory, run {\tt dart bin/average.dart}.
+\item testing: in a web browser on your computer, go to \url{http://localhost:8088/average}.
+\end{itemize}
+
+\section*{Editing files}
+The Vagrant configuration is set up such that the {\tt shared} directory inside 
+{\tt a1} is also visible inside the virtual machine in your home directory there.
+You can use your favourite text editor on your host machine, or you can install
+vim or Emacs inside the VM and edit there. Because the directory is shared, committing
+and pushing your clone of the repository from your host machine will send us your submission.
+
+\end{document}
+
