@@ -1,4 +1,4 @@
-\documentclass[10pt]{article}
+\documentclass[10pt,hidelinks]{article}
 \usepackage[letterpaper, hmargin=0.75in, vmargin=0.75in]{geometry}
 \usepackage{graphicx}
 \usepackage[hyphens]{url}
@@ -21,7 +21,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 1, version -1}
+Assignment/Lab 1, version 0}
 \author{Patrick Lam \\
 {Release Date:  January 16, 2017} \\
 }
@@ -29,8 +29,6 @@ Assignment/Lab 1, version -1}
 \maketitle
 
 \begin{center}
-
-
 
 {\bf Due:  11:59 PM, Monday, January 30, 2017} \\
 {\bf Submit: via ecgit }\\
@@ -41,11 +39,8 @@ Assignment/Lab 1, version -1}
 %Please download a1-skeleton.tar.gz from the course repository to get the necessary source code and 
 %test cases needed for finishing this assignment/lab. 
 
-%% An account on {\tt ecelinux.uwaterloo.ca} is available to you.
-%% Several of the resources required for this assignment are already installed on these servers, but can also be downloaded independently.
-%% If you are attempting to connect to a server from off campus, remember you will need to connect to the University's VPN first: \url{https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn/about-virtual-private-network-vpn}
-
-After setting up your ssh key at {\tt http://ecgit.uwaterloo.ca}, \\ fork the provided git repository at {\tt git@ecgit.uwaterloo.ca:se465/1171/a1}:
+\section*{Getting set up}
+After setting up your ssh key at \url{http://ecgit.uwaterloo.ca}, \\ fork the provided git repository at {\tt git@ecgit.uwaterloo.ca:se465/1171/a1}:
 
 \begin{center}
 {\tt ssh git@ecgit.uwaterloo.ca fork se465/1171/a1 se465/1171/USERNAME/a1}
@@ -53,30 +48,49 @@ After setting up your ssh key at {\tt http://ecgit.uwaterloo.ca}, \\ fork the pr
 
 \noindent and then clone the provided files. 
 (You can also download the provided
-files from the course repository (assignments/a1 in \url{https://github.com/patricklam/stqam-2017}),
+files from the course repository ({\tt assignments/a1} in \url{https://github.com/patricklam/stqam-2017}),
 but don't do that if you're in the course---it'll make submitting harder.)
+
+An account on {\tt ecelinux.uwaterloo.ca} is available to you.
+Several of the resources required for this assignment are already installed on these servers. Probably the Vagrant image is easiest to work with.
+If you are attempting to connect to a server from off campus, remember you will need to connect to the University's VPN first: \url{https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn/about-virtual-private-network-vpn}
 
 I expect each of you to do the assignment independently. I will follow UW's Policy 71 for all cases of plagiarism.
  
-\section*{Vagrant}
-
- \section*{Submission Instructions:} 
- Please read the following instructions carefully. {\bf If you do not follow the instructions, you may be 
-penalized up to 5 points. }
-
-TODO 
+\section*{How to run everything}
+Please see {\tt a1-technotes.pdf} for more details about how the provided software works.
+\newpage
+ \section*{Submission instructions:} 
+Commit {\bf and push} your modifications back to your fork on {\tt
+  ecgit}.  It's git, so you can submit multiple times. After
+submission, {\bf please re-clone your submissions to make sure you
+  have uploaded all necessary files}.
  
-It's git, so you can submit multiple times. After submission, {\bf please re-clone your submissions to make sure you have uploaded all necessary files}.
- 
+\section*{Submission summary}
+Here's what you need to submit in your fork of the repo. Be sure to commit
+and {\bf push} your changes back to {\tt ecgit}.
+\begin{enumerate}
+\item your modified {\tt FormattedCommandAliasTest.java} file in path
+\url{shared/bukkit/src/test/java/org/bukkit/command}.
+\item in directory {\tt q2}, either file {\tt exploratory.pdf} or {\tt exploratory.txt}, respectively
+in PDF or text format. I've included {\tt exploratory.tex} which you can
+\LaTeX into {\tt exploratory.pdf}. (No Microsoft Word files, please).
+\item in directory {\tt q3}, file {\tt fix.diff} (generate with {\tt git diff}) 
+and file {\tt failure.pdf}.
+\item in directory {\tt q4}, file {\tt no-dead-end.diff} and
+either file {\tt graph.png} or {\tt graph.pdf}.
+\item in directory {\tt q5}, your scripts/test harness with fake data,
+along with the code you use to generate it. (I used Python), along with 
+file {\tt scalability.pdf} summarizing your timings.
+\end{enumerate}
  
  \begin{center}
- \begin{tabular}{|c|c|c|}
- \hline
+ \begin{tabular}{c|cc}
  Question   &  TA in Charge \\ \hline
-1 &  \\ \hline
-2 &  \\ \hline
-3 &  \\ \hline
-4 &  \\ \hline
+1 &  \\ 
+2 &  \\ 
+3 &  \\ 
+4 &  \\ 
  \end{tabular}
  \end{center}
 
@@ -88,17 +102,18 @@ For this question, you will write JUnit tests for the {\tt
 achieve 100\% statement coverage.
 
 The provided Vagrant image includes a slightly modified version of
-Bukkit in the \url{~/shared/q1} directory (bukkit diff also available on
-github in \url{assignments/a1/bukkit-test-instrumentation.diff}.  In
-particular, I added a skeleton test class for {\tt
+Bukkit in the \url{~/shared/bukkit} directory (bukkit diff also available in course
+github at \url{assignments/a1/bukkit-test-instrumentation.diff}.  
+I added a skeleton test class for {\tt
   FormattedCommandAlias}, called {\tt FormattedCommandAliasTest}.
 
 You can run the tests in the VM with the command {\tt mvn test}.  To
 generate the Jacoco coverage report, use {\tt mvn package}. You'll
 find the resulting reports in
-\url{~/shared/q1/target/site/jacoco/org.bukkit.command}.
+\url{~/shared/bukkit/target/site/jacoco/org.bukkit.command}.
 
-\paragraph{Your task.} Create JUnit unit tests that achieve 100\% statement 
+\paragraph{Your task.} Add JUnit unit tests to {\tt FormattedCommandAliasTest}
+that achieve 100\% statement 
 coverage for the {\tt org.bukkit.command.FormattedCommandAlias} class
 and that verify the results of the computation.
 
@@ -108,22 +123,21 @@ coverage (full marks for 100\% statement coverage, nonlinearly scaled
 down for less), 5 points for your tests having passing assertions that
 verify the output. You will get 0 points if your code doesn't compile.
 
-\section*{Question 2 (10 points)} 
+\section*{Questions 2--5: ``average''}
 The next 4 questions are about the ``average'' Dart webapp, which I've
 also included in the Vagrant image. I developed this webapp to help me
 evaluate transfer requests. It is heavily based on the ``Tour of
 Heroes'' Angular Dart demo, with additional help from the ``Nest o' Pirates'' 
-Dart server example. You can find an instance of the webapp
-running at \url{https://patricklam.ca:8088/average}, although anyone
-can modify the data on that instance. The vagrant image also includes
-the webapp. The companion ``howto'' document describes how to start
+Dart server example. The vagrant image includes
+the webapp. The {\tt a1-technotes.pdf} document describes how to start
 the webapp. Once started, you can navigate to your own copy of the
 webapp at \url{http://localhost:8088/average} on your computer.
 
+\section*{Question 2 (10 points)}
 In this question, you will perform exploratory testing on ``average''.
 The charter will be ``Explore the overall functionality of
-average''. (1 points) Summarize in one or two sentences what you
-perceive as the goal of ``average''. (5 points) Identify the tasks
+average''. (1 point) Summarize in one or two sentences what you
+perceive as the goal of ``average''. (5~points) Identify the tasks
 that ``average'' should be able to do and classify them as primary or
 contributing. (You probably want to do this in parallel with your
 exploratory testing). (1 points) Identify areas of potential
@@ -132,32 +146,32 @@ your findings (one or two paragraphs); in Question 3 you will report a
 bug, so no need to do that here.
 
 \section*{Question 3 (10 points)}
-Identify a failure (bug) in the ``average'' webapp. Write down a sequence of
-steps to reproduce the bug. Implement a fix for the bug and explain the
-fix. Show the incorrect and correct outputs. (Screenshots are probably
+(3 points) Identify a failure (bug) in the ``average'' webapp. (2 points) Write down a sequence of
+steps to reproduce the bug. (5 points) Implement a fix for the bug and explain the
+fix; show the incorrect and correct outputs. (Screenshots are probably
 your best bet).
 
 (Think about the program's input space and poke at corners of the
 input space.)
 
 \section*{Question 4 (10 points)}
-Draw a graph summarizing the navigation structure of ``average''.
+(8 points) Draw a graph summarizing the navigation structure of ``average''.
 Nodes are pages with distinct URLs. Edges are links between these
 pages as realized by hyperlinks in the app. Submit your graph.
-Identify the dead end (node which has no successors) in the navigation
+(2 points) Identify the dead end (node which has no successors) in the navigation
 graph and submit a patch which corrects it.
 
 \section*{Question 5 (10 points)}
-The file ``shared/average/fake-data-small.sh'' 
+The file {\tt shared/average/fake-data-small.sh}
 contains some fake student and course
-data.  Your task is to evaluate the scalability of ``average''. To do
+data.  Your task is to evaluate the scalability of ``average''. (6 points) To do
 so, programmatically generate test cases of various sizes. 
 
 The scalability parameter to investigate is the number of students.
 students.  
 \begin{itemize}
 \item Each fake student should give rise to one REST API call to
-``/student'' and one to ``/student\_enrolment'', generating the
+{\tt /student} and one to {\tt /student\_enrolment}, generating the
 student and the enrolment in 1A. I recommend randomly drawing the
 student's program from a small set that you manually create. 
 You may also want to create fake names using a Faker library e.g.
@@ -170,7 +184,9 @@ standard deviation.
 \end{itemize}
 
 Incidentally, SE 2021 courses had the following data: 
-\begin{tabular}{lll}
+
+\begin{center}
+\begin{tabular}{lrr}
 & mean & $\sigma$\\
 MATH 115 & 85.1 & 12.2 \\
 MATH 117 & 83.0 & 12.6 \\
@@ -178,24 +194,18 @@ ECE 140 & 88.9 & 11.5 \\
 ECE 105 & 82.2 & 13.0 \\
 CS 137 & 82.5 & 10.6
 \end{tabular}
+\end{center}
 
-Empirically determine the scalability of the app; the easier way is to
+(4 points) Empirically determine the scalability of the app; the easier way is to
 manually time the JavaScript execution time (Chrome's developer tools
 include a Timeline), and the harder (but better) way is to develop a
 test harness.  Include the data points that you collect. Let's say
 that a running time over 1 second is unacceptable.
 
-\section*{Submission summary}
-Here's what you need to submit.
-\begin{enumerate}
-\item 
-\end{enumerate}
-
-
 \section*{Bonus (0 points)}
 Figure out why the browser console displays a {\tt NullError} exception
 when loading the ``Courses'' page and propose a fix.
-(One could argue that this is an error, not a failure, since it is not visible
-to the user.)
+I suspect this is also manifests as a user-visible failure which
+you could use for Question 3.
 
 \end{document}
