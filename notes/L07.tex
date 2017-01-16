@@ -1,0 +1,266 @@
+\documentclass[11pt]{article}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=4em, text centered, rounded corners, minimum height=2em]
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{7 --- January 18, 2017}{Winter 2017}{Patrick Lam}{version 0}
+
+DRAFT not yet final!
+
+
+Here's an example of deterministic and nondeterministic control-flow graphs:
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
+                    semithick,initial text=]
+
+  \node[initial,block,text width=5em]   (A)              {\tt if (x > 3)};
+  \node[block]           (T) [below right of=A] {};
+  \node[block]           (F) [below left of=A] {};
+  \node[accepting,block] (C) [below left of=T] {};
+  
+  \draw (A) -> (T) node [near end] {$x = 5$};
+  \draw (A) -> (F) node [yshift=.2em, xshift=-4em,at start] {$x = 0$};
+  \draw (T) -> (C);
+  \draw (F) -> (C);
+
+\end{tikzpicture}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
+                    semithick,initial text=]
+
+  \node[initial,block,text width=12em]   (A)              {\tt if (x.hashCode() > 3)};
+  \node[bt]           (T) [below right of=A] {};
+  \node[bt]           (F) [below left of=A] {};
+  \node[accepting,bt] (C) [below left of=T] {};
+  
+  \path (A) edge              node {} (T)
+        (A) edge              node {} (F)
+        (T) edge              node {} (C)
+        (F) edge              node {} (C);
+\end{tikzpicture}
+\end{center}
+Causes of nondeterminism include dependence on inputs; on the thread
+scheduler; and on memory addresses, for instance as seen in calls to 
+the default Java {\tt hashCode()} implementation. 
+
+Nondeterminism makes it hard to check test case output, since more
+than one output might be a valid result of a single test input.
+
+\paragraph{Indirection.} Note that we will describe coverage criteria
+with respect to \emph{test paths}, but we always run \emph{test cases}.
+
+\newpage
+\paragraph{Example.} Here is a short method, the associated control-flow
+graph, and some test cases and test paths.
+
+\begin{center}
+\begin{minipage}{10em}
+\vspace*{-8em}
+\begin{lstlisting}
+int foo(int x) {
+  if (x < 5) {
+    x ++;
+  } else {
+    x --;
+  }
+  return x;
+}
+\end{lstlisting}
+\end{minipage}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
+                    semithick,text width=10em,initial text=]
+
+  \node[initial,block,text width=10em]   (A)              {\tt (1) if (x < 5)};
+  \node[block,text width=6em]           (T) [below right of=A] {\tt (2) x++};
+  \node[block,text width=6em]           (F) [below left of=A] {\tt (3) x--};
+  \node[accepting,block,text width=10em] (C) [below left of=T] {\tt (4) return x};
+
+  \draw (A) -> (T) node [near end] {T};
+  \draw (A) -> (F) node [yshift=.2em, xshift=-2.5em,at start] {F};
+  \draw (T) -> (C);
+  \draw (F) -> (C);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+\item Test case: $x = 5$; test path: $[(1), (3), (4)]$.
+\item Test case: $x = 2$; test path: $[(1), (2), (4)]$.
+\end{itemize}
+
+Note that (1) we can deduce properties of the test case from the test path; and
+(2) in this example, since our method is deterministic, the test case 
+determines the test path.
+
+\subsection*{Graph Coverage}
+Having defined all of the graph notions we'll need for now, we apply them to
+graphs. Recall our previous definition of coverage:
+\begin{defn}
+Given a set of test requirements \emph{TR} for a coverage criterion $C$, 
+a test set $T$ \emph{satisfies} $C$ iff for every test requirement \emph{tr} in 
+\emph{TR}, at least one $t$ in $T$ exists such that $t$ satisfies \emph{tr}.
+\end{defn}
+
+We apply this definition to graph coverage:
+\begin{defn}
+Given a set of test requirements \emph{TR} for a graph criterion $C$, 
+a test set $T$ satisfies $C$ on graph $G$ iff for every test requirement
+\emph{tr} in \emph{TR}, at least one test path $p$ in $\mbox{path}(T)$ 
+exists such that $p$ satisfies \emph{tr}.
+\end{defn}
+We'll use this notion to define a number of standard testing
+coverage criteria. (At this point, the textbook defines predicates, but
+mostly ignores them afterwards. I'll just ignore them right away.)
+
+Recall the double-diamond graph $D$ which we saw earlier.
+For the \emph{node coverage} criterion, we get the following test requirements:
+\[ \{ n_0, n_1, n_2, n_3, n_4, n_5, n_6 \} \]
+That is, any test set $T$ which satisfies node coverage on $D$ must include
+test cases $t$; the cases $t$ give rise to test paths $\mbox{path}(t)$, and
+some path must include each node from $n_0$ to $n_6$. (No single path must
+include all of these nodes; the requirement applies to the set of
+test paths.)
+
+Let's formally define node coverage.
+\begin{defn}
+Node coverage: For each node $n \in \mbox{reach}_G(N_0)$, \emph{TR} contains
+a requirement to visit node $n$.
+\end{defn}
+
+We will state all of the coverage criteria in the following form:
+\begin{crit}
+Node Coverage (NC): \emph{TR} contains each reachable node in $G$.
+\end{crit}
+
+We can then write
+\[ \mathit{TR} = \{ n_0, n_1, n_2, n_3, n_4, n_5, n_6\}. \]
+
+Let's consider an example of a test set which satisfies node coverage
+on $D$, the double-diamond graph from last time.
+
+Start with a test case $t_1$; assume that executing $t_1$ gives the
+test path 
+\[ \mbox{path}(t_1) = p_1 = [n_0, n_1, n_3, n_4, n_6].\] 
+Then
+test set $\{ t_1\}$ does not give node coverage on $D$, because no
+test case covers node $n_2$ or $n_5$. If we can find a test case $t_2$
+with test path 
+\[\mbox{path}(t_2) = p_2 = [n_0, n_2, n_3, n_5, n_6],\]
+then the test set $T = \{ t_1, t_2 \}$ satisfies node coverage on $D$.
+
+{\sf What is another test set which satisfies node coverage on $D$?}\\[2em]
+
+%We could also satisfy node coverage with test set $T'$ containing test
+%cases $t_1$ and new cases $t_3$ and $t_4$ where $p_3 = [n_0, n_2, n_3,
+%n_4, n_6]$ and $p_4 = [n_0, n_1, n_3, n_5, n_6]$.
+
+Here is a more verbose definition of node coverage.
+
+\begin{defn}
+Test set $T$ satisfies \emph{node coverage} on graph $G$ if and only
+if for every syntactically reachable node $n \in N$, there is some
+path $p$ in $\mbox{path}(T)$ such that $p$ visits $n$.
+\end{defn}
+
+A second standard criterion is that of edge coverage.
+\begin{crit}
+{\bf Edge Coverage} (EC). TR contains each reachable path of length up
+to 1, inclusive, in $G$.
+\end{crit}
+We describe edge coverage this way so that, as far as possible, new
+criteria in a series will subsume previous criteria.
+
+{\sf Here are some examples of paths of length $\le 1$:}\\[1em]
+%\[ [n_3]; \qquad [n_4, n_6]. \]
+Note that since we're not talking about \emph{test paths}, these
+reachable paths need not start in $N_0$.
+
+In general, paths of length $\le 1$ consist of nodes and edges. {\sf (Why not just
+say edges?)}\\[3em]
+
+%Consider this graph:
+%\begin{center}
+%\begin{tikzpicture}...
+%\node[state,initial,accepting] (A) {};
+%\end{tikzpicture}
+%\end{center}
+Saying ``edges'' on the above graph would not be the same as saying ``paths
+of length $\le 1$''.
+
+\newpage
+Here is a more involved example:
+
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=3em, text centered, rounded corners, minimum height=2em]
+
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,
+                    semithick,initial text=]
+
+  \node[initial,block]   (A)              {$n_0$};
+  \node[block]           (B) [below right of=A] {$n_1$};
+  \node[accepting,block] (C) [below left of=B] {$n_2$};
+  
+  \path (A) edge              node[right] {$x < y$} (B)
+        (A) edge              node[left] {$x \ge y$} (C)
+        (B) edge              node {} (C);
+\end{tikzpicture}
+\end{center}
+
+Let's define
+\begin{eqnarray*}
+\mbox{path}(t_1) &=& [n_0, n_1, n_2] \\
+\mbox{path}(t_2) &=& [n_0, n_2] 
+\end{eqnarray*}
+
+Then 
+\begin{eqnarray*}
+T_1 &=& \hspace*{5em} \mbox{\sf satisfies node coverage}\\
+T_2 &=& \hspace*{5em} \mbox{\sf satisfies edge coverage}
+\end{eqnarray*}
+
+\end{document}
