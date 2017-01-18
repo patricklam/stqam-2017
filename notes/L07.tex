@@ -51,13 +51,9 @@ basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,bre
 
 \lecture{7 --- January 18, 2017}{Winter 2017}{Patrick Lam}{version 0}
 
-DRAFT not yet final!
-
 \paragraph{Basic Blocks.} We can simplify a CFG by grouping together
 statements which always execute together (in sequential programs):
 
-\begin{tabular}{ll}
-\begin{minipage}{.5\textwidth}
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
                     semithick,initial text=]
@@ -73,10 +69,6 @@ statements which always execute together (in sequential programs):
         (3) edge [bend left] node {} (2.west);
 \end{tikzpicture}
 \end{center}
-\end{minipage}
-&
-
-\end{tabular}
 
 We use the following definition:
 \begin{defn}
@@ -143,6 +135,7 @@ if (z < 17)
 \end{tabular}
 
 Short-circuit {\tt if} evaluation is more complicated; I recommend working it out yourself.
+\newpage
 
 {\bf case / switch statements:} 
 
@@ -232,7 +225,8 @@ for (int i = 0; i < 57; i++) {
 }
 \end{lstlisting}
 \end{minipage} & \begin{minipage}{.4\textwidth}
-  (an exercise for the reader!)
+  (an exercise for the reader; \\ 
+we saw one earlier!)
 \end{minipage}
 \end{tabular}
 
