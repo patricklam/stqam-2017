@@ -10,8 +10,8 @@ L3 is (M) January 9.
 
 L4: static vs dynamic/"complete testing"/test cases/observability&controlability/test requirements/quantifying coverage/black-box vs white-box
 L5: open-ended exploratory testing (http://katrinatester.blogspot.com.au/2016/12/the-testing-pendulum-finding-balance-in.html)
-L6, L7: statement/branch coverage (old L6, L9 on CFGs)
-L8, L9: graph-based models/design documentation (round trips; some content from old L07, L22)
+L6, L7, L8: statement/branch coverage (old L6, L9 on CFGs)
+L9: graph-based models/design documentation (round trips; some content from old L07, L22)
 
 L9 is (M) January 23. Target cutoff date for A1 material.
 
