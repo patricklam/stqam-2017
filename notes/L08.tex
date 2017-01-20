@@ -171,7 +171,89 @@ $\mbox{path}(T) = \{ \mbox{path}(t) | t \in T \}$.
 \end{itemize}
 
 \newpage
-As an example, consider the double-diamond graph $D$.
+\paragraph{Example.} Here is a short method, the associated control-flow
+graph, and some test cases and test paths.
+
+\begin{center}
+\begin{minipage}{10em}
+\vspace*{-8em}
+\begin{lstlisting}
+int foo(int x) {
+  if (x < 5) {
+    x ++;
+  } else {
+    x --;
+  }
+  return x;
+}
+\end{lstlisting}
+\end{minipage}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
+                    semithick,text width=10em,initial text=]
+
+  \node[initial,block,text width=10em]   (A)              {\tt (1) if (x < 5)};
+  \node[block,text width=6em]           (T) [below right of=A] {\tt (2) x++};
+  \node[block,text width=6em]           (F) [below left of=A] {\tt (3) x--};
+  \node[accepting,block,text width=10em] (C) [below left of=T] {\tt (4) return x};
+
+  \draw (A) -> (T) node [near end] {T};
+  \draw (A) -> (F) node [yshift=.2em, xshift=-2.5em,at start] {F};
+  \draw (T) -> (C);
+  \draw (F) -> (C);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+\item Test case: $x = 5$; test path: $[(1), (3), (4)]$.
+\item Test case: $x = 2$; test path: $[(1), (2), (4)]$.
+\end{itemize}
+
+Note that (1) we can deduce properties of the test case from the test path; and
+(2) in this example, since our method is deterministic, the test case 
+determines the test path.
+
+\paragraph{Nondeterminism.}
+I mentioned the mapping between test cases and test paths above.
+The mapping is not one-to-one for nondeterminstic code.
+Here's an example of deterministic and nondeterministic control-flow graphs:
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
+                    semithick,initial text=]
+
+  \node[initial,block,text width=5em]   (A)              {\tt if (x > 3)};
+  \node[block]           (T) [below right of=A] {};
+  \node[block]           (F) [below left of=A] {};
+  \node[accepting,block] (C) [below left of=T] {};
+  
+  \draw (A) -> (T) node [near end] {$x = 5$};
+  \draw (A) -> (F) node [yshift=.2em, xshift=-4em,at start] {$x = 0$};
+  \draw (T) -> (C);
+  \draw (F) -> (C);
+
+\end{tikzpicture}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
+                    semithick,initial text=]
+
+  \node[initial,block,text width=12em]   (A)              {\tt if (x.hashCode() > 3)};
+  \node[bt]           (T) [below right of=A] {};
+  \node[bt]           (F) [below left of=A] {};
+  \node[accepting,bt] (C) [below left of=T] {};
+  
+  \path (A) edge              node {} (T)
+        (A) edge              node {} (F)
+        (T) edge              node {} (C)
+        (F) edge              node {} (C);
+\end{tikzpicture}
+\end{center}
+Causes of nondeterminism include dependence on inputs; on the thread
+scheduler; and on memory addresses, for instance as seen in calls to 
+the default Java {\tt hashCode()} implementation. 
+
+Nondeterminism makes it hard to check test case output, since more
+than one output might be a valid result of a single test input.
+
+\newpage
+As another (more abstract) example, consider the double-diamond graph $D$.
 \begin{center}
 \label{D}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
@@ -270,8 +352,7 @@ say edges?)}\\[3em]
 Saying ``edges'' on the above graph would not be the same as saying ``paths
 of length $\le 1$''.
 
-\newpage
-Here is a more involved example:
+\paragraph{Another example.} Here is a more involved example:
 
 \tikzstyle{block} = [rectangle, draw, fill=blue!20, 
     text width=3em, text centered, rounded corners, minimum height=2em]
@@ -302,87 +383,6 @@ T_1 &=& \hspace*{5em} \mbox{\sf satisfies statement coverage}\\
 T_2 &=& \hspace*{5em} \mbox{\sf satisfies branch coverage}
 \end{eqnarray*}
 
-\paragraph{Nondeterminism.}
-I mentioned the mapping between test cases and test paths above.
-The mapping is not one-to-one for nondeterminstic code.
-Here's an example of deterministic and nondeterministic control-flow graphs:
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
-                    semithick,initial text=]
-
-  \node[initial,block,text width=5em]   (A)              {\tt if (x > 3)};
-  \node[block]           (T) [below right of=A] {};
-  \node[block]           (F) [below left of=A] {};
-  \node[accepting,block] (C) [below left of=T] {};
-  
-  \draw (A) -> (T) node [near end] {$x = 5$};
-  \draw (A) -> (F) node [yshift=.2em, xshift=-4em,at start] {$x = 0$};
-  \draw (T) -> (C);
-  \draw (F) -> (C);
-
-\end{tikzpicture}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
-                    semithick,initial text=]
-
-  \node[initial,block,text width=12em]   (A)              {\tt if (x.hashCode() > 3)};
-  \node[bt]           (T) [below right of=A] {};
-  \node[bt]           (F) [below left of=A] {};
-  \node[accepting,bt] (C) [below left of=T] {};
-  
-  \path (A) edge              node {} (T)
-        (A) edge              node {} (F)
-        (T) edge              node {} (C)
-        (F) edge              node {} (C);
-\end{tikzpicture}
-\end{center}
-Causes of nondeterminism include dependence on inputs; on the thread
-scheduler; and on memory addresses, for instance as seen in calls to 
-the default Java {\tt hashCode()} implementation. 
-
-Nondeterminism makes it hard to check test case output, since more
-than one output might be a valid result of a single test input.
-
-\newpage
-\paragraph{Example.} Here is a short method, the associated control-flow
-graph, and some test cases and test paths.
-
-\begin{center}
-\begin{minipage}{10em}
-\vspace*{-8em}
-\begin{lstlisting}
-int foo(int x) {
-  if (x < 5) {
-    x ++;
-  } else {
-    x --;
-  }
-  return x;
-}
-\end{lstlisting}
-\end{minipage}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
-                    semithick,text width=10em,initial text=]
-
-  \node[initial,block,text width=10em]   (A)              {\tt (1) if (x < 5)};
-  \node[block,text width=6em]           (T) [below right of=A] {\tt (2) x++};
-  \node[block,text width=6em]           (F) [below left of=A] {\tt (3) x--};
-  \node[accepting,block,text width=10em] (C) [below left of=T] {\tt (4) return x};
-
-  \draw (A) -> (T) node [near end] {T};
-  \draw (A) -> (F) node [yshift=.2em, xshift=-2.5em,at start] {F};
-  \draw (T) -> (C);
-  \draw (F) -> (C);
-\end{tikzpicture}
-\end{center}
-
-\begin{itemize}
-\item Test case: $x = 5$; test path: $[(1), (3), (4)]$.
-\item Test case: $x = 2$; test path: $[(1), (2), (4)]$.
-\end{itemize}
-
-Note that (1) we can deduce properties of the test case from the test path; and
-(2) in this example, since our method is deterministic, the test case 
-determines the test path.
 
 
 \end{document}
