@@ -47,9 +47,12 @@ basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,bre
 \parskip 1.5ex
 %\renewcommand{\baselinestretch}{1.25}
 
+\usepackage{fontspec}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+
 \begin{document}
 
-\lecture{7 --- January 18, 2017}{Winter 2017}{Patrick Lam}{version 0}
+\lecture{7 --- January 18, 2017}{Winter 2017}{Patrick Lam}{version 1}
 
 \paragraph{Basic Blocks.} We can simplify a CFG by grouping together
 statements which always execute together (in sequential programs):
@@ -72,8 +75,10 @@ statements which always execute together (in sequential programs):
 
 We use the following definition:
 \begin{defn}
-A basic block has one entry point and one exit point.
+A basic block is a sequence of instructions in the control-flow graph
+that has one entry point and one exit point.
 \end{defn}
+We are usually interested in forming maximal basic blocks.
 Note that a basic block may have multiple successors. However, there 
 may not be any jumps into the middle of a basic block (which is
 why statement {\tt l0} has its own basic block.)
@@ -196,7 +201,7 @@ while (x < y) {
                     semithick,initial text=]
 
   \node[initial,bt]   (1)                     {1 (x = 0; y = 20)};
-  \node[bt]           (2) [below of=1]        {2 (L2)};
+  \node[bt]           (2) [right of=1,xshift=2em]        {2 (L2)};
   \node[bt]           (3) [below right of=2,xshift=1em]  {3 (L3)};
   \node[bt]           (4) [below of=2,yshift=-2em]   {4};
 
@@ -212,8 +217,7 @@ while (x < y) {
 Note that arbitrarily complicated structures may occur inside
 the loop body.
 
-\newpage
-{\bf for statements:} 
+    {\bf for statements:} 
 
 \begin{tabular}{ll}
 \begin{minipage}{.5\textwidth}
@@ -237,7 +241,6 @@ in the {\tt widgetList}:
 for (Widget w : widgetList) {
   decorate(w);
 }
-// ...
 \end{lstlisting}
 
 I will accept the simplified CFG or the more useful one on the right:
@@ -277,301 +280,5 @@ I will accept the simplified CFG or the more useful one on the right:
 \end{minipage}
 \end{tabular}
 
-\newpage
-\paragraph{Larger example.} You can draw a 7-node CFG for this program:
-
-\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
-  /** Binary search for target in sorted subarray a[low..high] */
-  int binary_search(int[] a, int low, int high, int target) {
-    while (low <= high) {
-      int middle = low + (high-low)/2;
-      if (target < a[middle)
-        high = middle - 1;
-      else if (target > a[middle])
-        low = middle + 1;
-      else
-        return middle;
-    }
-    return -1; /* not found in a[low..high] */
-  }
-\end{lstlisting}
-
-\vspace*{-2em}
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
-                    semithick,initial text=]
-  \node[initial,bt,text width=12em]   (1)                     {\verb+1. if (low <= high)+ (L3)};
-  \node[bt, accepting,text width=10em]          (8) [below right of=1,yshift=-1em,xshift=3em]  {\verb+8. return middle+ (L12)};
-  \node[bt]           (2) [below of=1, yshift=-4em]  {2 (L4--5)};
-  \node[bt]           (4) [below left of=2] {4 (L6)};
-  \node[bt]           (5) [below right of=2] {5 (L7)};
-  \node[bt]           (6) [below left of=5] {6 (L9)};
-  \node[bt,text width=12em,accepting,xshift=3em]           (7) [below right of=5] {\verb+7. return middle (L9)+};
-
-  \path (1) edge node[left] {T} (2)
-  (1) edge node[right,xshift=.5em] {F} (8)
-  (2) edge node[left,xshift=-.5em] {T} (4)
-  (2) edge node[right,xshift=.5em]{F} (5)
-  (4.west) edge [bend left] (1)
-  (5) edge node {T} (6)
-  (5) edge node {F} (7)
-  (6.south west) edge [bend left=80] (1);
-\end{tikzpicture}
-\end{center}
-
-Here are more exercise programs that you can draw CFGs for.
-\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
-/* effects: if x==null, throw NullPointerException
-            otherwise, return number of elements in x that are odd, positive or both. */
-int oddOrPos(int[] x) {
-  int count = 0;
-  for (int i = 0; i < x.length; i++) {
-    if (x[i]%2 == 1 || x[i] > 0) {
-      count++;
-    }
-  }
-  return count;
-}
-
-// example test case: input: x=[-3, -2, 0, 1, 4]; output: 3  
-\end{lstlisting}
-
-\newpage
-Finally, we have a really poorly-designed API (I'd give it a D at most,
-maybe an F) because it's impossible to succinctly describe what it
-does. {\bf Do not design functions with interfaces like this.} But we
-can still draw a CFG, no matter how bad the code is.
-\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
-  /** Returns the mean of the first maxSize numbers in the array,
-      if they are between min and max. Otherwise, skip the numbers. */
-  double computeMean(int[] value, int maxSize, int min, int max) {
-    int i, ti, tv, sum;
-
-    i = 0; ti = 0; tv = 0; sum = 0;
-    while (ti < maxSize) {
-      ti++;
-      if (value[i] >= min && value[i] <= max) {
-        tv++;
-        sum += value[i];
-      }
-      i++;
-    }
-    if (tv > 0)
-      return (double)sum/tv;
-    else
-      throw new IllegalArgumentException();
-  }
-\end{lstlisting}
-
-
-
-Here's an example of deterministic and nondeterministic control-flow graphs:
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
-                    semithick,initial text=]
-
-  \node[initial,block,text width=5em]   (A)              {\tt if (x > 3)};
-  \node[block]           (T) [below right of=A] {};
-  \node[block]           (F) [below left of=A] {};
-  \node[accepting,block] (C) [below left of=T] {};
-  
-  \draw (A) -> (T) node [near end] {$x = 5$};
-  \draw (A) -> (F) node [yshift=.2em, xshift=-4em,at start] {$x = 0$};
-  \draw (T) -> (C);
-  \draw (F) -> (C);
-
-\end{tikzpicture}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
-                    semithick,initial text=]
-
-  \node[initial,block,text width=12em]   (A)              {\tt if (x.hashCode() > 3)};
-  \node[bt]           (T) [below right of=A] {};
-  \node[bt]           (F) [below left of=A] {};
-  \node[accepting,bt] (C) [below left of=T] {};
-  
-  \path (A) edge              node {} (T)
-        (A) edge              node {} (F)
-        (T) edge              node {} (C)
-        (F) edge              node {} (C);
-\end{tikzpicture}
-\end{center}
-Causes of nondeterminism include dependence on inputs; on the thread
-scheduler; and on memory addresses, for instance as seen in calls to 
-the default Java {\tt hashCode()} implementation. 
-
-Nondeterminism makes it hard to check test case output, since more
-than one output might be a valid result of a single test input.
-
-\paragraph{Indirection.} Note that we will describe coverage criteria
-with respect to \emph{test paths}, but we always run \emph{test cases}.
-
-\newpage
-\paragraph{Example.} Here is a short method, the associated control-flow
-graph, and some test cases and test paths.
-
-\begin{center}
-\begin{minipage}{10em}
-\vspace*{-8em}
-\begin{lstlisting}
-int foo(int x) {
-  if (x < 5) {
-    x ++;
-  } else {
-    x --;
-  }
-  return x;
-}
-\end{lstlisting}
-\end{minipage}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2cm,
-                    semithick,text width=10em,initial text=]
-
-  \node[initial,block,text width=10em]   (A)              {\tt (1) if (x < 5)};
-  \node[block,text width=6em]           (T) [below right of=A] {\tt (2) x++};
-  \node[block,text width=6em]           (F) [below left of=A] {\tt (3) x--};
-  \node[accepting,block,text width=10em] (C) [below left of=T] {\tt (4) return x};
-
-  \draw (A) -> (T) node [near end] {T};
-  \draw (A) -> (F) node [yshift=.2em, xshift=-2.5em,at start] {F};
-  \draw (T) -> (C);
-  \draw (F) -> (C);
-\end{tikzpicture}
-\end{center}
-
-\begin{itemize}
-\item Test case: $x = 5$; test path: $[(1), (3), (4)]$.
-\item Test case: $x = 2$; test path: $[(1), (2), (4)]$.
-\end{itemize}
-
-Note that (1) we can deduce properties of the test case from the test path; and
-(2) in this example, since our method is deterministic, the test case 
-determines the test path.
-
-\subsection*{Graph Coverage}
-Having defined all of the graph notions we'll need for now, we apply them to
-graphs. Recall our previous definition of coverage:
-\begin{defn}
-Given a set of test requirements \emph{TR} for a coverage criterion $C$, 
-a test set $T$ \emph{satisfies} $C$ iff for every test requirement \emph{tr} in 
-\emph{TR}, at least one $t$ in $T$ exists such that $t$ satisfies \emph{tr}.
-\end{defn}
-
-We apply this definition to graph coverage:
-\begin{defn}
-Given a set of test requirements \emph{TR} for a graph criterion $C$, 
-a test set $T$ satisfies $C$ on graph $G$ iff for every test requirement
-\emph{tr} in \emph{TR}, at least one test path $p$ in $\mbox{path}(T)$ 
-exists such that $p$ satisfies \emph{tr}.
-\end{defn}
-We'll use this notion to define a number of standard testing
-coverage criteria. (At this point, the textbook defines predicates, but
-mostly ignores them afterwards. I'll just ignore them right away.)
-
-Recall the double-diamond graph $D$ which we saw earlier.
-For the \emph{node coverage} criterion, we get the following test requirements:
-\[ \{ n_0, n_1, n_2, n_3, n_4, n_5, n_6 \} \]
-That is, any test set $T$ which satisfies node coverage on $D$ must include
-test cases $t$; the cases $t$ give rise to test paths $\mbox{path}(t)$, and
-some path must include each node from $n_0$ to $n_6$. (No single path must
-include all of these nodes; the requirement applies to the set of
-test paths.)
-
-Let's formally define node coverage.
-\begin{defn}
-Node coverage: For each node $n \in \mbox{reach}_G(N_0)$, \emph{TR} contains
-a requirement to visit node $n$.
-\end{defn}
-
-We will state all of the coverage criteria in the following form:
-\begin{crit}
-Node Coverage (NC): \emph{TR} contains each reachable node in $G$.
-\end{crit}
-
-We can then write
-\[ \mathit{TR} = \{ n_0, n_1, n_2, n_3, n_4, n_5, n_6\}. \]
-
-Let's consider an example of a test set which satisfies node coverage
-on $D$, the double-diamond graph from last time.
-
-Start with a test case $t_1$; assume that executing $t_1$ gives the
-test path 
-\[ \mbox{path}(t_1) = p_1 = [n_0, n_1, n_3, n_4, n_6].\] 
-Then
-test set $\{ t_1\}$ does not give node coverage on $D$, because no
-test case covers node $n_2$ or $n_5$. If we can find a test case $t_2$
-with test path 
-\[\mbox{path}(t_2) = p_2 = [n_0, n_2, n_3, n_5, n_6],\]
-then the test set $T = \{ t_1, t_2 \}$ satisfies node coverage on $D$.
-
-{\sf What is another test set which satisfies node coverage on $D$?}\\[2em]
-
-%We could also satisfy node coverage with test set $T'$ containing test
-%cases $t_1$ and new cases $t_3$ and $t_4$ where $p_3 = [n_0, n_2, n_3,
-%n_4, n_6]$ and $p_4 = [n_0, n_1, n_3, n_5, n_6]$.
-
-Here is a more verbose definition of node coverage.
-
-\begin{defn}
-Test set $T$ satisfies \emph{node coverage} on graph $G$ if and only
-if for every syntactically reachable node $n \in N$, there is some
-path $p$ in $\mbox{path}(T)$ such that $p$ visits $n$.
-\end{defn}
-
-A second standard criterion is that of edge coverage.
-\begin{crit}
-{\bf Edge Coverage} (EC). TR contains each reachable path of length up
-to 1, inclusive, in $G$.
-\end{crit}
-We describe edge coverage this way so that, as far as possible, new
-criteria in a series will subsume previous criteria.
-
-{\sf Here are some examples of paths of length $\le 1$:}\\[1em]
-%\[ [n_3]; \qquad [n_4, n_6]. \]
-Note that since we're not talking about \emph{test paths}, these
-reachable paths need not start in $N_0$.
-
-In general, paths of length $\le 1$ consist of nodes and edges. {\sf (Why not just
-say edges?)}\\[3em]
-
-%Consider this graph:
-%\begin{center}
-%\begin{tikzpicture}...
-%\node[state,initial,accepting] (A) {};
-%\end{tikzpicture}
-%\end{center}
-Saying ``edges'' on the above graph would not be the same as saying ``paths
-of length $\le 1$''.
-
-\newpage
-Here is a more involved example:
-
-\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
-    text width=3em, text centered, rounded corners, minimum height=2em]
-
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.5cm,
-                    semithick,initial text=]
-
-  \node[initial,block]   (A)              {$n_0$};
-  \node[block]           (B) [below right of=A] {$n_1$};
-  \node[accepting,block] (C) [below left of=B] {$n_2$};
-  
-  \path (A) edge              node[right] {$x < y$} (B)
-        (A) edge              node[left] {$x \ge y$} (C)
-        (B) edge              node {} (C);
-\end{tikzpicture}
-\end{center}
-
-Let's define
-\begin{eqnarray*}
-\mbox{path}(t_1) &=& [n_0, n_1, n_2] \\
-\mbox{path}(t_2) &=& [n_0, n_2] 
-\end{eqnarray*}
-
-Then 
-\begin{eqnarray*}
-T_1 &=& \hspace*{5em} \mbox{\sf satisfies node coverage}\\
-T_2 &=& \hspace*{5em} \mbox{\sf satisfies edge coverage}
-\end{eqnarray*}
 
 \end{document}
