@@ -21,7 +21,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 1, version 1}
+Assignment/Lab 1, version 1.1}
 \author{Patrick Lam \\
 {Release Date:  January 16, 2017} \\
 }
@@ -160,6 +160,8 @@ your best bet).
 (Think about the program's input space and poke at corners of the
 input space.)
 
+{\bf Update 01/20:} Do not use the bug that you use in Question 4 for this one.
+
 \section*{Question 4 (10 points)}
 (8 points) Draw a graph summarizing the navigation structure of ``average''.
 Nodes are pages with distinct URLs. Edges are links between these
@@ -178,7 +180,6 @@ Your task is to evaluate the scalability of ``average''. (6 points) To do
 so, programmatically generate test cases of various sizes. 
 
 The scalability parameter to investigate is the number of students.
-students.  
 \begin{itemize}
 \item Each fake student should give rise to one REST API call to
 {\tt /student} and one to {\tt /student\_enrolment}, generating the
@@ -192,6 +193,8 @@ yours don't have to be.
 You should generate the course marks randomly about a mean with a given
 standard deviation.
 \end{itemize}
+
+{\bf Update 01/20:} Please also submit the data that you generate to get your scalability numbers.
 
 Incidentally, SE 2021 courses had the following data: 
 
