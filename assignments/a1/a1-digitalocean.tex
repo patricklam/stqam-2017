@@ -1,0 +1,104 @@
+\documentclass[10pt,hidelinks]{article}
+\usepackage[letterpaper, hmargin=0.75in, vmargin=0.75in]{geometry}
+\usepackage{graphicx}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{pgf}
+\usepackage{courier}
+\usepackage{fancyvrb}
+
+\usepackage{upquote}
+\newcommand\textcode{\Verb}
+
+\parindent 0in
+\parskip 1.5ex
+
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+
+\begin{document}
+
+\title{
+ECE453/CS447/SE465 \\
+Software Testing, Quality Assurance, and Maintenance\\
+Assignment/Lab 1: Using DigitalOcean}
+\author{Patrick Lam}
+\date{January 22, 2017}
+\renewcommand{\today}{}
+\maketitle
+
+An alternative to using Vagrant is spinning up a virtual machine with a cloud provider.
+I'll provide instructions for DigitalOcean here, but Lightsail (by Amazon) is an option also.
+This does cost you some money (US\$10/month prorated while your VM is up), but always works.
+
+\paragraph{Sign up with digitalocean.} Go to \url{digitalocean.com}, create an account, and give
+them your billing information.
+
+\paragraph{Create droplet.} The digitalocean term for a VM is a ``droplet''. Click on the
+``Create droplet'' button top right. Choose ``Ubuntu 16.04.1 x64'' for the image, ``\$10/mo'' 
+for the size (I don't think you can Dart with 512MB). You'll get better ping times with the
+TOR1 datacenter.
+
+The best practice is to add your SSH key. You can use the same one as you used with ecgit.
+If you cut and paste the ssh key, be sure to include the ``ssh-rsa'' prefix at the beginning.
+
+%138.197.76.38
+
+Write down the IP address that digitalocean tells you (e.g. 138.197.76.38).
+
+\section*{Initial setup: installing packages}
+
+We'll next mirror the steps that {\tt bootstrap.sh} runs automatically. ssh to {\tt root@your-ip-address}. Run the following commands to install the JDK, Maven, Git and Dart.
+
+\textcode!sh -c 'curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -'!\\
+\textcode!sh -c 'curl https://storage.googleapis.com/download\!\\
+\textcode!.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'!\\
+\textcode!apt-get update!\\
+\textcode!apt-get install -y default-jdk maven git dart!
+
+\section*{Creating a non-root user}
+Best not to develop as root. Let's create a non-privileged account and set it up.
+
+\begin{verbatim}
+adduser (your-favorite-userid)
+mkdir ~userid/.ssh
+cp ~/.ssh/authorized_keys ~userid/.ssh/
+echo "export PATH=/usr/lib/dart/bin:$PATH" > ~userid/.bash_profile
+chown -R userid.userid ~userid/.ssh
+chown userid.userid ~userid/.bash_profile
+\end{verbatim}
+
+\section*{Assignment 1 setup}
+Next, logout and reconnect to your machine as your userid. Explicitly specify ``ssh -A'' to pass along your ssh key to the virtual machine.
+
+Assuming that you've already forked the repo, clone it on your
+virtual machine:
+
+\begin{verbatim}
+git clone git@ecgit.uwaterloo.ca:se465/1171/userid/a1
+\end{verbatim}
+
+Check that everything works by running ``mvn package'' from the ``a1/shared/bukkit'' directory and ``pub get; pub build'' from the ``a1/shared/average'' directory.
+
+\section*{Fixing ``average''}
+The ``average'' webapp fetches from the server at a hardcoded ``localhost'' location. That's not going to work.
+
+Edit the file ``a1/shared/average/lib/client/student\_service.dart'' and replace ``localhost:8088'' with ``your-ip-address:8088'' in the constructor call to {\tt StudentService}.
+
+\section*{Viewing results}
+To view your coverage results, you can either serve the {\tt a1/shared/bukkit/target/site} directory from your DigitalOcean machine or you can rsync it to your local machine. Rsyncing is easier. At a prompt on your local machine:
+
+\begin{verbatim}
+rsync -avz your-ip-address:a1/shared/bukkit/target/site .
+\end{verbatim}
+
+You'll then find that you have a copy of the coverage report in your current directory.
+
+Good luck!
+
+\end{document}
+
