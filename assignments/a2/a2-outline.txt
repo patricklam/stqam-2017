@@ -1,0 +1,8 @@
+* automated marking for A1Q1 (FindBugs plugin)
+* fuzzing
+* mutation
+* automatic test suite generation
+* mock objects
+* continuous integration -> A3
+* selenium -> A3
+
