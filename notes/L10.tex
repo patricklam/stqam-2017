@@ -1,0 +1,193 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usetikzlibrary{arrows,automata,shapes}
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+
+\begin{document}
+
+\lecture{10 --- January 25, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\section*{Syntax-Based Testing}
+We are going to completely switch gears now. We will see two applications of context-free grammars:
+\begin{enumerate}
+\item input-space grammars: create inputs (both valid and invalid)
+\item program-based grammars: modify programs (mutation testing)
+\end{enumerate}
+
+
+\paragraph{Mutation testing.} The basic idea behind mutation testing is to improve your test suites
+by creating modified programs (\emph{mutants}) which force your test
+suites to include test cases which verify certain specific behaviours
+of the original programs by killing the mutants. We'll talk about this
+in more detail in a week or two.
+
+\subsection*{Generating Inputs: Regular Expressions and Grammars}
+
+Consider the following Perl regular expression for Visa numbers:
+
+\begin{verbatim}
+                        ^4[0-9]{12}(?:[0-9]{3})?$
+\end{verbatim}
+%(This regexp is different from the syntax you saw in automata/compilers
+%classes, but could be expressed in the standard way too, as it has no
+%backrefs.)
+
+Idea: generate ``valid'' tests from regexps and invalid tests by 
+mutating the grammar/regexp. {\sf (Why did I put valid in quotes? What
+is the fundamental limitation of regexps?)}
+\\[4em]
+
+%Fundamental limitation of regexps: \\[2em]
+% can't count, e.g. can't balance parens.
+
+Instead, we can use grammars to generate inputs (including sequences
+of input events).
+
+Typical grammar fragment:
+
+\begin{eqnarray*}
+\mbox{mult\_exp} &=& \mbox{unary\_exp} \mid \mbox{mult\_exp {\tt STAR} unary\_arith\_exp} \mid \mbox{mult\_exp {\tt DIV} unary\_arith\_exp}; \\
+\mbox{unary\_exp} &=& \mbox{quant\_exp} \mid \mbox{unary\_exp {\tt DOT INT}}
+\mid \mbox{unary\_exp up};\\
+&\vdots& \\
+\mbox{start} &=& \mbox{header}^? \mbox{declaration}^*
+\end{eqnarray*}
+
+\paragraph{Using Grammars.} Two ways you can use input grammars for
+software testing and maintenance:
+\begin{itemize}
+\item recognizer: can include them in a program to validate inputs;
+\item generator: can create program inputs for testing.
+\end{itemize}
+Generators start with the start production and replace nonterminals
+with their right-hand sides to get (eventually) strings belonging to 
+the input languages. Typically you would generate inputs until you have
+enough, either randomly sampling from the input space or systematically
+generating inputs of larger and larger sizes.
+
+\paragraph{Another Grammar.}~\\
+
+{\sf 
+\begin{tabular}{lcl}
+roll &=& action$^*$ \\
+action &=& dep $\mid$ deb \\
+dep &=& {\tt "deposit"} account amount \\
+deb &=& {\tt "debit"} account amount \\
+account &=& digit \{ 3 \} \\
+amount &=& {\tt "\$"} digit$^+$ {\tt "."} digit \{ 2 \} \\
+digit &=& ["0" -- "9"]
+\end{tabular}
+}
+
+\paragraph{Examples of valid strings.}~\\[4em]
+%\begin{verbatim} 
+% deposit 739 $12.35
+% deposit 929 $33.20
+% debit 739 $6.00
+%\end{verbatim}
+
+Note: creating a grammar for a system that doesn't have one, but should,
+is a useful QA exercise. Using this grammar at runtime to validate inputs
+can improve software reliability, although it makes tests generated
+from the grammar less useful.
+
+
+\paragraph{Some Grammar Mutation Operators.} 
+\begin{itemize}
+\item Nonterminal Replacement; e.g. \\
+{\sf dep = {\tt "deposit"} account amount $\Longrightarrow$
+ dep = {\tt "deposit"} amount amount}\\[4em]
+(Use your judgement to replace nonterminals with similar nonterminals.)
+
+\item Terminal Replacement; e.g. \\
+{\sf amount = {\tt "\$"} digit$^+$ {\tt "."} digit \{ 2 \} 
+$\Longrightarrow$ amount = {\tt "\$"} digit$^+$ {\tt "\$"} digit \{ 2 \} } \\[4em]
+
+\item Terminal and Nonterminal Deletion; e.g.\\
+{\sf dep = {\tt "deposit"} account amount $\Longrightarrow$
+ dep = {\tt "deposit"} amount}\\[4em]
+
+\item Terminal and Nonterminal Duplication; e.g.\\
+{\sf dep = {\tt "deposit"} account amount $\Longrightarrow$
+ dep = {\tt "deposit"} account account amount}\\[4em]
+\end{itemize}
+
+\paragraph{Using grammar mutation operators.}
+\begin{enumerate}
+\item mutate grammar, generate (invalid) inputs; or,
+\item use correct grammar, but mis-derive a rule once---gives ``closer''
+inputs (since you only miss once.)
+\end{enumerate}
+
+\paragraph{Why test invalid inputs?} Bill Sempf (@sempf), on Twitter: ``QA Engineer walks into a bar. Orders a beer. Orders 0 beers. Orders 999999999 beers. Orders a lizard. Orders -1 beers. Orders a sfdeljknesv.''
+
+If you're lucky, your program accepts strings (or events) described by a regexp or a grammar. But you might not use a parser or regexp engine. Generating using the regexp or grammar helps detect deviations, both right now and in the future.
+
+What we'll do is to mutate the grammars and generate test strings from the mutated grammars.
+
+Some notes:
+\begin{itemize}
+\item Can generate strings still in the grammar even after mutation.
+\item Recall that we aren't talking about semantic checks.
+\item Some programs accept only a subset of a specified larger language,
+e.g. Blogger HTML comments. Then testing intersection is useful.
+\end{itemize}
+
+\end{document}
