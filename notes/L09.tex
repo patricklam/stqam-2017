@@ -62,10 +62,18 @@
 
 \begin{document}
 
-\lecture{9 --- January 23, 2015}{Winter 2017}{Patrick Lam}{version 1}
+\lecture{9 --- January 23, 2015}{Winter 2017}{Patrick Lam}{version 2}
 
 \section*{Review: Statements, branches and beyond}
-We talked about statement (length-0 paths) and branch coverage (length-1 paths) last time.
+We talked about statement (length-0 paths) and branch coverage
+(length-1 paths) last time.  In lecture, we reviewed the elements
+needed to satisfy these coverage criteria: given a graph and a
+criterion, we get a set of Test Requirements $\mathrm{TR}$. We execute
+each test $t$ in the test set $T$ on the system under test, giving a
+set of test paths $p \in P$. The criterion is satisfied if there
+exists at least one test path $p \in P$ that satisfies each of the
+test requirements $\mathrm{tr} \in \mathrm{TR}$.
+
 I'll say this again later, but for real programs, 80\% coverage is usually good enough; but
 also consider what is not tested. Also, Assignment 1 Question 1 should point out to you that
 it's possible to have 100\% statement coverage but not actually test anything, if you write
@@ -108,7 +116,7 @@ hold after the FSM has taken the transition.
 \begin{itemize}
 \item node coverage: visiting every FSM state = state coverage;
 \item edge coverage: visiting every FSM transition = transition coverage;
-\item edge-pair coverage: actually useful for FSMS; transition-pair, two-trip coverage.
+\item edge-pair coverage (extension of edge coverage to paths of length at most 2): actually useful for FSMS; transition-pair, two-trip coverage.
 \end{itemize}
 
 \paragraph{Examples.} The next few graphs represent finite state machines
