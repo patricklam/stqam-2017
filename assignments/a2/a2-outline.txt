@@ -1,4 +1,9 @@
 * automated marking for A1Q1 (FindBugs plugin)
+
+   - check that the stmt coverage is 100% (simple grep)
+   - check that FormattedCommandAliasTest.java contains strictly more than one test
+   - check that each method in the class contains a call to assertEquals with mockCommandSender.getLastMessage() as arg 1
+
 * fuzzing
 * mutation
 * automatic test suite generation
