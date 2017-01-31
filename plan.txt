@@ -29,6 +29,9 @@ L16 is (W) Feb 8.
 
 ## Engineering test suites (L17-25)
 
+why write tests?
+https://hackernoon.com/treat-yourself-e55a7c522f71
+
 L17: on test automation (http://www.ontestautomation.com/not-so-useful-metrics-in-test-automation/) At its heart, test automation is – or at least should be – meant to increase the effectiveness of testing efforts. 
 L18: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
 L19: Selenium, web testing (L34)
