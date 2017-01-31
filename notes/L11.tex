@@ -60,7 +60,7 @@
 
 \begin{document}
 
-\lecture{11 --- January 27, 2017}{Winter 2017}{Patrick Lam}{version 0}
+\lecture{11 --- January 27, 2017}{Winter 2017}{Patrick Lam}{version 1}
 
 \section*{Fuzzing}
 
@@ -104,6 +104,8 @@ was to introduce a system flag, ``MonkeyLives'', and have MacPaint and
 MacWrite ignore the quit command if MonkeyLives was true.)
 % footnote: folklore.org
 
+[edit: Lecture 12 actually started here]
+
 \paragraph{How Fuzzing Works.} 
 Two kinds of fuzzing: \emph{mutation-based} and
 \emph{generation-based}. Mutation-based testing starts with
@@ -133,10 +135,10 @@ what happens. Find an assertion failure/crash.
 generate C programs. One could propose the following hierarchy of inputs\footnote{\url{http://www.cs.dartmouth.edu/~mckeeman/references/DifferentialTestingForSoftware.pdf}}:
 \begin{enumerate}
 \item sequence of ASCII characters;
-\item sequence of words, separators, and white space;
-\item syntactically correct C program;
-\item type-correct C program;
-\item statically conforming C program;
+\item sequence of words, separators, and white space (gets past the lexer);
+\item syntactically correct C program (gets past the parser);
+\item type-correct C program (gets past the type checker);
+\item statically conforming C program (starts to exercise optimizations);
 \item dynamically conforming C program;
 \item model conforming C program.
 \end{enumerate}
