@@ -40,9 +40,20 @@ Assignment/Lab 2, version 0.9}
 % due after L20
 \section*{Question 1 (10 points)}
 
-Fuzzing
+In the {\tt shared/icalendarlib} directory, you will find an implementation of
+an iCalendar {\tt ics} file parser.
 
-\url{https://github.com/mfontanini/sloth-fuzzer/blob/master/README.md}
+Your task is to generate {\tt ics} files to crash {\tt icalendarlib} or to cause memory errors
+as measured by {\tt valgrind} or other tools. You can do this either by manually hand-crafting
+{\tt ics} files (not recommended) or else by writing a fuzzing tool to create them.
+
+You can find some sample {\tt ics} files here:\\
+\url{http://apple.stackexchange.com/questions/125338/calendar-ical-ics-format}
+
+and the {\tt ics} file format specification here:\\
+\url{https://tools.ietf.org/html/rfc5545}
+
+TODO: more details about {\tt ics}; edit the test harness to take an input file.
 
 \section*{Question 2 (10 points)} 
 
