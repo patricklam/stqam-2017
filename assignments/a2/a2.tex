@@ -1,0 +1,141 @@
+\documentclass[10pt,hidelinks]{article}
+\usepackage[letterpaper, hmargin=0.75in, vmargin=0.75in]{geometry}
+\usepackage{graphicx}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{pgf}
+\usepackage{fontspec}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+\usepackage{syntax}
+\usepackage{hyphenat}
+
+\parindent 0in
+\parskip 1.5ex
+
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+
+\begin{document}
+
+\title{
+ECE453/CS447/SE465 \\
+Software Testing, Quality Assurance, and Maintenance\\
+Assignment/Lab 2, version 0.9}
+\author{Patrick Lam \\
+{Release Date:  January 30, 2017} \\
+}
+\renewcommand{\today}{}
+\maketitle
+
+\begin{center}
+
+{\bf Due:  11:59 PM, Monday, February 27, 2017} \\
+{\bf Submit: via ecgit }\\
+\end{center}
+
+% due after L20
+\section*{Question 1 (10 points)}
+
+Fuzzing
+
+\url{https://github.com/mfontanini/sloth-fuzzer/blob/master/README.md}
+
+\section*{Question 2 (10 points)} 
+
+Consider the following implementation of the cycle-finding algorithm from \url{http://en.literateprograms.org/Floyd%27s_cycle-finding_algorithm_%28C%29}. (We've included the complete implementation from there in the skeleton at {\tt q2/cycle-finder.c}, including a test harness.) In your {\tt q2/mutants.pdf} file, propose two non-stillborn and non-equivalent mutants of this function. Write down test inputs which strongly kill these mutants (syntax doesn't matter) and the expected output of your test cases on the original code and on the mutant.
+
+\begin{lstlisting}
+typedef struct node_s {
+        void *data;
+        struct node_s *next;
+} NODE;
+
+int list_has_cycle(NODE *list)
+{
+        NODE *fast=list;
+        while(1) {
+                if(!(fast=fast->next)) return 0;
+                if(fast==list) return 1;
+                if(!(fast=fast->next)) return 0;
+                if(fast==list) return 1;
+                list=list->next;
+        }
+        return 0;
+}
+\end{lstlisting}
+
+\section*{Question 3 (10 points)}
+
+Something about test automation?
+
+\section*{Question 4 (10 points)}
+
+In your repository, you will find a JavaScript application at {\tt
+  shared/calc/index.html}. I wrote this application (or at least
+ported it from the Internet). It uses a Pratt parser to parse a simple expression language and evaluate the given expression.
+
+Here is a grammar for this application.
+
+\begin{grammar}
+  <expr> ::= number 
+         \alt `-' <expr>
+         \alt `+' <expr>
+         \alt  <expr> `+' <expr> \alt  <expr> `-' <expr>
+         \alt  <expr> `*' <expr> \alt  <expr> `/' <expr>
+         \alt  <expr> `\verb+^+' <expr>
+         \alt `(' <expr> `)'
+         
+  <number> ::= [`0' - `9']$^+$
+\end{grammar}
+
+
+Your task is to manually (or otherwise) generate a set of test cases
+for this application and to use Selenium to automate these test
+cases. You shouldn't need to look at the application source
+code. Specifically:
+
+\begin{itemize}
+\item (2 points) Generate 10 test cases for the application. Specify the input along with the actual and expected output. Some of the inputs should be within the language recognized by the application, while others should be outside the language. Be sure to choose interesting test cases.
+
+\item (8 points) Use Selenium to automate your 10 test cases. In the {\tt shared/selenium} directory in your repo, you will find a {\tt SeleniumExample}. You can run tests from this example using the command:
+
+\begin{verbatim}
+mvn test "-Dtest=se465.SeleniumExample#test*" -Dwebdriver.base.url=http://www.google.com
+\end{verbatim}
+
+Your test suite should be called {\tt se465.CalcSuite} and we should be able to run your tests with the command:
+
+\begin{verbatim}
+mvn test "-Dtest=se465.CalcSuite#test*" \
+     -Dwebdriver.base.url=file:///<put your a2 directory here>/shared/calc/index.html
+\end{verbatim}
+
+We will check that your tests exercise the functionality that you specified in the first part.
+
+\item (5 bonus points) Fix bugs in the application (submit a diff).
+\end{itemize}
+
+%fuzz these cases?
+
+\section*{Question 5 (10 points)}
+
+If all goes according to plan, I'll describe the Page Object design pattern in Lecture 19. Your task is to create Page Objects for the JavaScript calculator. This will allow your tests to generalize to {\tt francais.html} and
+{\tt eval.html}.
+
+\begin{itemize}
+\item (6 points) In this part, we'll create page objects. Create a generic Page Object interface {\tt CalculatorPageObject}, along with an implementation {\tt OriginalCalculatorPageObject}, which summarizes the UI elements on the {\tt index.html} page. It should allow you to access the controls that your tests from Question 4 need. Also, create an additional Page Object {\tt FrancaisCalculatorPageObject} which implements the same interface but which works with {\tt francais.html}. 
+  \item (4 points) Copy {\tt se465.CalcSuite} to {\tt se465.RefactoredCalcSuite} and {\tt se465.RefactoredFrancaisCalcSuite}. Modify both of the refactored suites to use the page objects that you created for the first part. (This could be done via dependency injection as well, but we haven't talked about that. However, I will accept a single {\tt RefactoredCalcSuite} if you include instructions on how to inject dependencies.)
+\end{itemize}
+
+References for this question:
+
+\url{http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference}
+\\
+\url{https://martinfowler.com/bliki/PageObject.html}
+
+
+\end{document}
