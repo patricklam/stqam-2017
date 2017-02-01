@@ -29,16 +29,23 @@ L16 is (W) Feb 8.
 
 ## Engineering test suites (L17-25)
 
-why write tests?
+L17: why write tests?
 https://hackernoon.com/treat-yourself-e55a7c522f71
 
-L17: on test automation (http://www.ontestautomation.com/not-so-useful-metrics-in-test-automation/) At its heart, test automation is – or at least should be – meant to increase the effectiveness of testing efforts. 
-L18: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
-L19: Selenium, web testing (L34)
+on test automation (http://www.ontestautomation.com/not-so-useful-metrics-in-test-automation/) At its heart, test automation is – or at least should be – meant to increase the effectiveness of testing efforts.
+
+L18: Selenium, web testing (L34)
+
+L19: Page object design pattern
+
+http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference
+https://martinfowler.com/bliki/PageObject.html
+
+L20: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
+
+answer questions about midterm; mock objects (L30, brief)
 
 midterm is after L20
-
-L20: answer questions about midterm; mock objects (L30, brief)
 
 [reading week, A2 due at end of reading week]
 
