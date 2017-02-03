@@ -1,0 +1,572 @@
+\documentclass[10pt]{article}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{pgf}
+
+\topmargin -0.1pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 9.2in
+\oddsidemargin -0.1pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.7in
+
+\parindent 0in
+\parskip 1.5ex
+
+
+\lstset{ %
+language=Java,
+basicstyle=\scriptsize,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+
+\begin{document}
+
+\title{
+(ECE453/CS447/ECE653/CS647/SE465) \\
+Software Testing, Quality Assurance, and Maintenance\\
+Project, Version 1}
+\author{Instructor: Patrick Lam \\
+Lab Instructor: Irene Huang \\
+Release Date:  February 6, 2017 }
+\renewcommand{\today}{}
+\maketitle
+
+\begin{center}
+{\bf Due:  11:59 PM, Friday, April 3, 2017 (no late days)} \\
+{\bf Group Sign-up Due:  11:59 PM, Monday, February 27, 2017} \\
+{\bf Submit: via ecgit}
+		
+\end{center}
+
+Please go to \url{http://patricklam.ca/se465-groups/1171/project/} to sign up your project group by {\bf 11:59 PM February 27, 2017}.  Choose your own group members (2--3 students per group). The signup page will tell you your repo address and fork the skeleton repo for you.
+
+We have also placed {\tt proj-skeleton.tar.gz} in the course repo, in
+case you want to look at the files before committing to a group. But
+use the skeleton in your forked repo before starting to work on your
+project. The skeleton contains the necessary source code and test
+cases for the project.
+
+I expect each group to work on the project independently (discussion and collaboration among group 
+members are expected). I will follow UW's Policy 71 if I discover any cases of plagiarism.
+		
+
+\section*{Submission Instructions:} 
+Please read the following instructions carefully. {\bf If you do not follow the instructions, you may be 
+penalized up to 5 points}. 
+
+\vspace{0.03in}
+{\bf Electronic submission:} Push your project files to your group repo on ecgit. We expect to find:
+
+\begin{itemize}
+\item in the root of the repo, a single PDF file ``proj\_sub.pdf'' for
+  both part (I) and part (II). At the top of this PDF file, you must
+  include your team members' full names, student numbers, the course
+  numbers (one of ECE453, CS447, or SE465), and your uwaterloo email
+  addresses.
+
+\item a directory ``pi'' that contains your code for Project Part (I) (follow the instructions for part (I)).
+``pi'' should contain two subdirectories ``partA'' and ``partC''.
+The code for part I (a) and (c) should be in directories ``pi/partA'' and ``pi/partC'' respectively. 
+It must not break the marking script given to you for Part I (a). 
+{\bf You must use C/C++ or Java for part (I).} %Otherwise, you will lose all points for part (II).}
+
+\item a directory ``pii'' that contains the compressed output from Coverity for Project part (II)(b) (follow the instructions for part (II)).  
+
+\end{itemize}
+
+The layout of your directories is important, since we use automated software
+to mark your submissions. In addition, {\bf your code must work on ecelinux machines}.
+
+In your top-level ``pi/partA'' directory there should be your {\tt Makefile},
+{\tt source code} and
+{\tt pipair} file. 
+Our marking script will copy the skeleton files into
+this directory before running {\tt verify.sh}; for example,
+the first test
+will be in ``pi/partA/test1''. Placing files into other folders, placing your
+{\tt pipair} file in a different location, or doing anything which prevents
+{\tt verify.sh} from running will result in losing marks. Also note that you
+cannot modify {\tt verify.sh}, since it will be automatically overwritten during marking.
+
+In your top-level ``pi/partC'' directory, follow the same submission protocol 
+as ``pi/partA''.
+
+You can submit multiple times.  After submission, {\bf please 
+re-clone your submissions to make sure you have uploaded the right files/versions}.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Part   &  People in Charge \\ \hline
+(I) & Irene (Lab Instructor)\\ 
+ & TBA \\ 
+ & TBA\\ \hline
+(II) 
+& TBA\\
+& TBA\\ 
+\hline
+%Total &  70 & \\ \hline
+\end{tabular}
+\end{center}
+
+\section*{Part (I) Building an Automated Bug Detection Tool} %(60 points)} 
+You will learn \emph{likely-invariants} from call graphs in a way reminiscent to that in SOSP'01 paper discussed in class (Coverity). In particular, you will learn what pairs of functions are called together. 
+You will then use these likely-invariants to automatically detect software bugs. 
+
+\subsection*{(a) Inferring Likely Invariants for Bug Detection (40 points)}
+Take a look at the following contrived code segment. 
+\begin{verbatim}
+void scope1() {
+  A(); B(); C(); D();
+}
+void scope2() {
+  A(); C(); D();
+}
+void scope3() {
+  A(); B(); B();
+}
+void scope4() {
+  B(); D(); scope1();
+}
+void scope5() {
+  B(); D(); A();
+}
+void scope6() {
+  B(); D();
+}
+\end{verbatim}
+
+We can learn that function \texttt{A} and function \texttt{B} are called together 
+three times in function {\tt scope1}, {\tt scope3}, and {\tt scope5}. 
+Function {\tt A} is called four times in function {\tt scope1}, {\tt scope2}, {\tt scope3}, and {\tt scope5}. 
+We infer that the one time that function {\tt A} is called without {\tt B} in {\tt scope2} 
+is a bug, as function {\tt A} and {\tt B} are called together 3 times.
+We only count {\tt B} once in {\tt scope3} although {\tt scope3} calls {\tt B} two times.
+
+We define $\mathit{support}$ as the number of times a pair of functions appears together. Therefore, 
+$\mathit{support}(\{A,B\})$ is 3.  
+We define $\mathit{confidence}(\{A,B\},\{A\})$ as $\frac{\mathit{support}(\{A,B\})}{\mathit{support}(\{A\}) }$, which is $\frac{3}{4}$.
+We set the threshold for support and confidence to be $\mathit{T\_SUPPORT}$ and $\mathit{T\_CONFIDENCE}$, whose default values are 
+3 and 65\%. 
+%You only print pairs that appear together $T\_SUPPORT$ times or more. 
+You only print bugs with confidence $\mathit{T\_CONFIDENCE}$ or more and with pair support $\mathit{T\_SUPPORT}$ times or more.  
+For example, function {\tt B} is called five times in function {\tt scope1}, {\tt scope3}, {\tt scope4}, {\tt scope5}, and {\tt scope6}.  
+The two times that function {\tt B} is called alone are not 
+printed as a bug as the confidence is only 60\% $\left(\frac{\mathit{support}({A,B})}{\mathit{support}({B}) }=\frac{3}{5}\right)$, lower than the $\mathit{T\_THRESHOLD}$, which is 65\%.
+Please note that $\mathit{support}({A,B})$ and $\mathit{support}({B,A})$ are equal, and both 3.
+
+
+Perform intra-procedural analysis. For example, do not expand {\tt scope1} in {\tt scope4} to the four functions {\tt A}, {\tt B}, {\tt C}, and {\tt D}. 
+Match function names only. 
+%Do not consider function parameters. For example, {\tt scope1()} and {\tt scope1(int)} are considered the same function.
+
+The sample output with the default support and confidence thresholds should be:
+\begin{verbatim}
+bug: A in scope2, pair: (A, B), support: 3, confidence: 75.00%
+bug: A in scope3, pair: (A, D), support: 3, confidence: 75.00%
+bug: B in scope3, pair: (B, D), support: 4, confidence: 80.00%
+bug: D in scope2, pair: (B, D), support: 4, confidence: 80.00%
+\end{verbatim}
+
+%You will notice that the sample output provided in the skeleton code contains no commas. The grading scripts 
+%remove commas from your output before we compare your output with the expected output. 
+
+\paragraph{Generate call graphs using LLVM.}
+%You compile source code into bitcode format, 
+Given a bitcode file, you use LLVM {\em opt} to generate call graphs in plain text format,
+and then analyze the textual call graphs to generate function pairs and detect bugs. 
+%Two methods, either parse call graphs from text, or write LLVM pass. In either case, use 
+The {\em opt} tool is installed on ecelinux (ecelinux.uwaterloo.ca) under /usr/local/bin.
+If you want to work on your own computer, you need to use 64-bit LLVM 3.0 to avoid compatibility issues.
+LLVM 3.0 is available as a package in many popular Linux distributions.
+%(compilation instructions at \url{https://ece.uwaterloo.ca/~lintan/courses/testing/llvm.html}). 
+%Use LLVM's {\em opt} tool to generate call graph in text form from a bitcode file.
+
+A sample call graph in text format is shown as follows:
+
+\begin{verbatim}
+Call graph node for function: `ap_get_mime_headers_core'<<0x42ff770>>  #uses=4
+  CS<0x4574458> calls function `ap_rgetline_core'
+  CS<0x4575958> calls external node
+  CS<0x4575a50> calls external node
+  CS<0x4575b20> calls function `apr_table_setn'
+  CS<0x45775a8> calls external node
+  CS<0x45776a0> calls external node
+  CS<0x4577770> calls function `apr_table_setn'
+  CS<0x45783b8> calls external node
+  CS<0x4579dc0> calls function `apr_table_setn'
+  CS<0x4579f78> calls function `strchr'
+  CS<0x457a948> calls external node
+  CS<0x457aa40> calls external node
+  CS<0x457ab10> calls function `apr_table_setn'
+  CS<0x457d9d0> calls function `apr_table_addn'
+  CS<0x457e4e8> calls function `apr_table_compress'
+and
+Call graph node <<null function>><<0x2411e40>>  #uses=0
+\end{verbatim}
+
+
+The following explanation should help you understand the call graph:
+\begin{itemize}
+\item The above call graph represents the function \texttt{ap\_get\_mine\_headers\_core} calls functions \texttt{ap\_rgetline\_core}, \texttt{apr\_table\_setn}, etc.
+\item \textbf{\#uses=} gives the number of times the caller is called by other functions.
+For example, \texttt{ap\_get\_mine\_headers\_core} is called 4 times. 
+\item {\bf CS} denotes call site. 
+\item {\bf 0x?????} indicates the memory address of the data structure, i.e., call graph nodes and call sites.
+\item An {\bf external node} denotes a function that is not implemented in this object file. Ignore external node functions.
+\item A call graph node of {\bf null function} represents all external callers. Ignore null function nodes entirely.
+\end{itemize}
+
+
+\paragraph{Performance.}
+% \# of nodes: grep -ci "Call graph node" libcommon.txt
+% \# of edges: grep -ci "calls function" libcommon.txt
+We will evaluate the performance and scalability of your program on a pass/fail basis.
+The largest program that we test will contain up to 20k nodes and 60k edges.
+Each test case will be given a timeout of two minutes.
+A timed-out test case will receive zero points.
+We do not recommand using multi-threading because it only provides a linear gain in 
+performance.
+%% the timeout was five minute in 2012 version. 
+%% Tian observes that they either timeout, or completes in 40-60 seconds, occasionally slightly more than one minute. 
+%% Waiting five minutes will be a waste of our time
+
+Hints:
+\begin{itemize}
+\item (Very Important!) Do not use string comparisons because it will greatly impact the performance. Use a hashing method to store and retrieve your mappings.
+%\item Avoid using strings as keys in hash tables. Use some kind of ID instead.
+\item Minimize the number of nested loops. Pruning an iteration in the outer loop is more helpful than in the inner loop.
+\item None of the provided test cases should take more than 5 seconds to run.
+\end{itemize}
+ 
+
+\paragraph{Submission protocol.}
+Please follow this protocol and read it \emph{carefully}:
+\begin{itemize}
+\item You only have to submit three items inside the a directory named as \texttt{pi/partA}.
+      Your {\tt .gitignore} should ensure that you don't push compiled binaries or {\tt test} subdirectories.
+\begin{itemize}
+    \item A file called \texttt{Makefile} to compile your source code; it must include `all' and `clean' targets.
+    \item A file called \texttt{pipair} as an executable script. You don't need to submit this if your
+    {\tt pipair} is an executable binary which will be generated automatically when our script executes `make' on your \texttt{Makefile}.
+    \item \texttt{Source code} for your program. Please document/comment your code properly so that it is understandable. 
+    Third party libraries are allowed. Make sure all your code runs on ecelinux.
+    We will not edit any environment variables when we run your code on our account, 
+    so make sure your program is self-contained. 
+    We will be testing the code under the bash shell.
+\end{itemize}
+Place all of the above items at the root of your repository. Do not submit any of the files from the skeleton folder.
+\item We provide the marking script ({\em verify.sh}) that we'll use to test your pipair. Please write your code and {\tt Makefile} to fit the script.  
+\item {\bf Make sure your code works on ecelinux machines}. We will use the provided scripts to  grade your project on ecelinux machines. If your code doesn't run on ecelinux, you will receive 0 points. %out of courtesy. 
+{\bf You must use C/C++ or Java for part (I).} %Otherwise, you will lose all points for part (II).}
+%For example, if your code requires python 2.6, you need to used 'python26' instead of 'python'. 
+\item Marking will be done with strict line comparisons. We will count how many pairs are missing (false negatives) and how many pairs are false positives.
+\item You should print one pair per line to stdout in this format:
+\begin{verbatim}
+    bug: %s in %s, pair: (%s, %s), support: %d, confidence: %.2f%%\n
+\end{verbatim}
+%\item If you use Java, make sure you round decimal numbers in the same way as C/C++ on Linux by setting the appropriate RoundingMode.
+%For example:
+%\begin{verbatim}
+%    NumberFormat numf = NumberFormat.getNumberInstance();
+%    numf.setMaximumFractionDigits(2);
+%    numf.setRoundingMode (RoundingMode.HALF_EVEN);
+%    System.out.println("confidence:" + numf.format(confidence*100.0) + "%");
+%\end{verbatim}
+%{\em Possible pair \%s and \%s.\\n}.
+\item The order of the pairs in your output does not matter. As you can see from the script {\em verify.sh}, we will run {\em sort} before {\em diff} .
+\item The order of the two functions in a pair does not matter in the calculations. Both (foo, bar) and (bar, foo) contribute to the count of pair (bar, foo). However, to have consistent output (for easier grading), you must sort the pair alphabetically while printing. For example, print (bar, foo) instead of (foo, bar).
+
+The golden output uses natural
+sorting (lexicographical comparison) with the following API:
+
+\url{http://docs.oracle.com/javase/tutorial/collections/interfaces/order.html}
+
+In lexicographical comparison, digits will precede letters and uppercase precedes lowercase.
+
+\item Ignore duplicate calls to the same function. For example, if we have the code segment {\tt scope() \{ A(); B(); A(); B(); A(); \}}, the support for the pair (A, B), $\mathit{support}(A,B)$, is 1.
+\item Name your program {\tt pipair}. We must be able to run it with the following command, where the support and confidence value will always be an integer: \\
+{\em ./pipair \textless{}bitcode file\textgreater{} \textless{}T\_SUPPORT\textgreater{} \textless{}T\_CONFIDENCE\textgreater{}}, \\
+e.g. \\
+{\em ./pipair hello.bc 10 80}, to specify support of 10 and confidence of 80\%, \\
+or \\
+{\em ./pipair \textless{}bitcode file\textgreater{}}, \\
+e.g. \\
+{\em ./pipair hello.bc}, to use the default support of 3 and default confidence of 65\%. 
+\item If running your program requires a special command line format such as {\em java YourProgram arguments}, your {\em pipair} should be a wrapper bash script, e.g.:
+\begin{verbatim}
+#!/bin/bash
+java YourProgram $@  
+\end{verbatim}
+
+\$@ represents all command line arguments.
+
+\item 
+If you are using Java, 
+you must configure the \texttt{-Xms128m} and \texttt{-Xmx128m} flag to ensure 
+Java Virtual Machine allocates enough memory during the startup
+(do not allocate more than 128MB).
+It is recommended that configure this in your pipair script while launching
+your Java program.
+The reason is that the VM will not dynamically increase the heap size
+for the larger test cases.
+Make sure your program is memory-efficient to ensure
+it succeeds on larger test cases.
+\end{itemize}
+
+\paragraph{Skeleton files and marking.}
+\begin{itemize}
+\item We recommend developing on ecelinux. 
+We have confirmed that the UNIX ``sort'' command
+behaves differently on Mac than on Linux. (You may be able to find
+command-line arguments to fix this, but it's at your own risk.)
+
+%% Tian: removing it b/c it causes more confusion than usefulness
+%\item In Makefile.common, ``PREFIX=" defines where the LLVM executables are
+%located. Specify the FULL path if the executables are not in your \$PATH.
+
+\item To test a specific test case, run ``{\tt make clean}'' and then ``{\tt make}'' in the test's directory.
+Your output should be identical to the ``{\tt gold}'' file. 
+Your output should be passed through {\tt sort} before {\tt diff}ing with the {\tt gold} file. 
+For example:
+
+\texttt{sort testX\_Y\_Z.out | diff gold\_Y\_Z -}
+
+\item To run all tests together, execute {\tt verify.sh}.  Logs of all output
+can be found in {\tt /tmp}.
+
+\item {\tt clean.sh} runs ``{\tt make clean}" in all test directories.
+
+\item Our marking procedure:
+
+    \begin{enumerate}
+        \item We will extract your submitted tar file on the server.
+        \item We will copy the required files from your \texttt{pi/partA} directory into 
+        the root of a clean skeleton folder that contains the full
+        test suite with seven tests.
+        \item We will run ``{\tt verify.sh}'' to test your program, which will automatically:
+        \begin{enumerate}
+            \item Run ``{\tt make}'' to compile your program.
+            \item Execute each test with a two minute limit.
+        \end{enumerate}
+    \end{enumerate}
+
+\item Since the skeleton files and tests are copied over during marking,
+do \emph{not} modify any files given in the project skeleton, since they will be over-written.
+\end{itemize}
+
+\paragraph{Common issues.}
+\begin{itemize}
+\item It says ``error''.
+
+This error indicates {\tt verify.sh} encountered a problem when it tried to run {\tt make} inside the test directories. 
+This is likely due to a failure in {\tt pipair}.
+
+Here are a few things that you can do to help troubleshoot this issue:
+\begin{itemize}
+\item The error message is usually in the {\tt testx\_x\_xx.out} file. This file contains what got written to stdout by your {\tt pipair} executable.
+\item The log output of {\tt verify.sh} is dumped to a file at {\tt /tmp/testing-\textless{}your username\textgreater{}-pi-\textless{}time of log\textgreater{}.log}.
+\item Instead of testing the whole test suite using {\tt verify.sh},
+      run the individual test cases manually with ``{\tt make clean}'' 
+      and then ``{\tt make}'' inside each testX folder.
+\item Verify the correctness of your {\tt pipair} by running it manually
+      inside each test folder.
+      If your {\tt pipair} is a bash script that consists of multiple commands, 
+      manually execute the bash commands one at a time.
+\end{itemize}
+
+\item How should I implement {\tt pipair}?
+
+You can implement pipair as an executable binary, 
+or you can implement pipair as a bash script. 
+It might be easier if you do it the bash script approach.
+The reason is that you can call {\tt opt} within the bash script and either
+\begin{itemize}
+    \item pipe the call graph output from {\tt opt} into your C/Java program; or,
+    \item write the call graph to a file and then read the file with your C/Java program to perform the analysis.
+\end{itemize}
+
+\item My program is printing garbage; how can I get rid of message X or message Y?
+
+Please check both stdout and stderr. You can discard those messages by dumping them to \texttt{/dev/null}.
+
+\item I don't know how to get the call graph using {\tt opt}. I'm getting either nothing or gibberish.
+
+Use LLVM's {\tt opt} tool. {\tt opt} prints the call graph to stderr, and the contents of the bitcode file to stdout if stdout is not the terminal. There are many ways of getting the call graphs:
+\begin{itemize}
+\item Use an intermediate file for the call graph.
+\item Call {\tt opt} from inside your program, and capture {\tt opt}'s stderr.
+\item Write a wrapper, and pipe the call graph to your program as if it is typed by hand to stdin. For example:
+      \texttt{opt -print-callgraph 2\textgreater{}\&1 \textgreater{}/dev/null $|$ YourProgram \$@}
+\end{itemize}
+There are many other ways depending on your design and your language of choice.
+
+\item I can't run a shell command with I/O redirection (e.g., ``{\tt opt -print-callgraph 2\textgreater{}\&1 \textgreater{}/dev/null}''). 
+
+This is because your Linux shell does not support I/O redirection.
+You can check what shell you are running by executing ``ps -p \$\$''.
+Change your shell to \texttt{bash} by issuing ``{\tt bash}'' in the terminal to fix the issue.
+
+\item I'm getting ``Segmentation Fault'' from {\tt opt}.
+
+If it's only test3, you are using an old version of LLVM. You must use 64-bit LLVM 3.0 to generate a call graph for test3.
+If all tests segfault, you are using a broken LLVM compilation.
+We recommend using LLVM on ecelinux.
+%or a package on a popular flavor of Linux.
+%It is recommended to rm the build directory and start over in the case that make is interrupted for whatever reason. Compilation tips can be found at 
+%\url{https://ece.uwaterloo.ca/~lintan/courses/testing/llvm.html}.
+%% https://ece.uwaterloo.ca/\textasciitilde t2jiang/testing/llvm. 
+%Read it thoroughly. There are many common mistakes one could make while compiling LLVM.
+
+\item Java throws ``NoClassDefFoundError" if I run my program within the testX directory.
+
+The working directory while running the tests is always {\em inside} the testX directories.
+Therefore, you need to specify the path to your .class file using the ``{\tt -cp}" option in your pipair wrapper. 
+For example:
+
+\texttt{java -cp [classpath here] YourClassName \$@"}
+
+\end{itemize}
+
+%Use this for A2
+%LLVM method (I suggest give bonus points for implementing this method since it can be difficult for people totally unfamiliar with LLVM's code):
+%-Write a pass according to: http://llvm.org/docs/WritingAnLLVMPass.html
+%-Include “llvm/Analysis/CallGraph.h”, and inherit “llvm:CallGraph”. Source code of CallGraph class can be found in “llvm-src/lib/Analysis/IPA/CallGraph.cpp”. Look at CallGraphNode::print for how the call graph tree is traversed and how the call graph is printed. 
+%-Compare functions based on function name as a string, don’t compare functions b/c it’ll also compare parameters.
+%-If a CallGraphNode’s Function reference is null, ignore this node entirely. 
+%-If a null Function reference is called, ignore this called Function.
+%-LLVM Class References: http://llvm.org/doxygen/annotated.html
+%-Useful classes: Module
+%CallGraphNode
+%Function
+%StringRef
+%std::map
+
+%\newpage
+\subsection*{(b) Finding and Explaining False Positives (10 points)}
+Examine the output of your code for (a) on the Apache {\tt httpd} server
+(test3 from part (a)) by running \texttt{verify.sh}. 
+Do you think you found any real bugs? 
+There are some false positives.
+A false positive is where a line says ``bug ...'' in your output, 
+but there is nothing wrong with the corresponding code. 
+Write down two different fundamental reasons for as to why false positives occur in general.
+%(10 points)
+
+Identify 2 pairs of functions that are false positives for {\tt httpd}.
+Explain why you think each of the two pairs that you selected are false positives.
+The two pairs should have a combined total of at least 10 ``bug ..." line locations
+(e.g., first pair can have 4 and second pair can have 6).
+For example, the following sample output contains 4 locations regarding 3 pairs: (A, B) (A, D) and (B, D).
+You do not have to provide explanations for all 10 locations, 
+but you will want to use at least one location to discuss each pair.
+Briefly explain why the pair is a false positive with reference to the source code.
+
+\begin{verbatim}
+bug: A in scope2, pair: (A, B), support: 3, confidence: 75.00%
+bug: A in scope3, pair: (A, D), support: 3, confidence: 75.00%
+bug: B in scope3, pair: (B, D), support: 4, confidence: 80.00%
+bug: D in scope2, pair: (B, D), support: 4, confidence: 80.00%
+\end{verbatim}
+
+The source code of {\tt httpd} has been provided on ecelinux for your convenience. It is located at:
+ {\em /opt/testing/apache\_src}. % and {\em /home/testing/chrome\_src}. %(contains libcommon.bc and libcommon.txt)
+
+This directory contains the source code, the bitcode file ({\tt .bc}), 
+the call graph file in plain text format ({\tt .txt}), 
+and the sample output ({\tt .out}) for a run of {\tt httpd}. 
+At the end of the call graph, 
+you'll find the file path where each function is defined, 
+which will help you find the actual function bodies.
+
+If you find new bugs (bugs that have not been found by other people yet), 
+you may receive bonus points. Check the corresponding bug databases of 
+Apache\footnote{\url{https://issues.apache.org/bugzilla/}} 
+%and Chrome\footnote{\url{http://code.google.com/p/chromium/issues/list}}
+to make sure that the bug you found has not been reported there already.  
+Clearly explain why you think it is a bug and provide evidence that it is a new bug. %Please talk to Lin. 
+
+
+\subsection*{(c) Inter-Procedural Analysis. (10 points)}
+One solution to reduce false positives is inter-procedural analysis.
+For example, one might expand the function {\tt scope1} in the function {\tt scope4} to the four functions 
+{\tt A}, {\tt B}, {\tt C}, and {\tt D}. 
+Implement this solution by adding an optional fourth command line parameter to {\tt pipair}.
+We leave the algorithm's implementation details up to you.
+
+Write a report (up to 2 pages) to describe your algorithm and what you found.
+Run an experiment on your algorithm and report the details.
+For example, you can vary the numbers of levels that you expand as an experiment. 
+Provide a concrete example to illustrate that your solution can do better than the default algorithm used in (a). 
+We will read your report and code. 
+If you only submit a report, you will receive at most 50\% of the points for this part (c). Make sure your code is well documented and your report is understandable.  
+Follow the submission protocol in part (a) and place the code inside the \textbf{pi/partC} directory.
+
+Test 3 from part (a) utilizes the same program ({\tt httpd}) as part (b). 
+Therefore, you might find it convenient to use test 3 to verify your inter-procedural experiment.
+
+%Another solution is to perform flow sensitive analysis on a control flow graph. Show some pseudo-code (describe the algorithm). Give an example to illustrate that your solution will do better than the default algorithm used in A1 Q3 (up to 1 page). 
+
+Resources for students who would like to generate 
+a call graph with function arguments (optional): 
+\begin{itemize}
+\item Check out the following post: http://stackoverflow.com/questions/5373714/generate-calling-graph-for-c-code
+\item Once you generated the call graph, use \texttt{c++filt} to 
+demangle the function names (takes care of function overloading).
+After that use \texttt{sed} to transform the text and you will get the call graph.
+\item It is important that you disable C/C++ optimizations during the call graph generation.
+Add the following flags in ``opt'' to ensure there is no inlining 
+and ensure ``opt'' would not optimize the function arguments:
+\texttt{-disable-inlining -disable-opt}
+\item You have to use \texttt{clang++} to generate the bitcode.
+\end{itemize}
+
+\section*{Part (II) --- Using a Static Bug Detection Tool } % (40 points)} 
+
+For this part of the project you will be using the static code analysis tool Coverity to find defects in source code. We have acquired a Coverity license for student use. Occasionally, we will collect groups, generate Coverity credentials, and mail you a link which allows you choose a password for your credentials.
+
+\subsection*{(a) Resolving Bugs in Apache Commons}
+In this task, you are to triage warning messages resulting from running Coverity static analysis on Apache Commons (a library of useful Java tools). We have already compiled and analyzed a version of Apache Commons for you. The pre-analyzed code is available on Coverity's web interface at \url{http://ecelinux1.uwaterloo.ca:8080}. Log in using username ``student" and password ``\%Ccb2wXQ". To view and triage warnings from the analysis, select the ``Outstanding Defects" item in the navigation tree on the left hand side of the page. Click on warnings to view details of the warning and the source code that triggered the warning.
+
+The analysis results contain warnings from both Coverity and FindBugs static analysis tools. 
+
+Your task is to triage and repair  these warnings. There are 20 warnings for you to triage and repair. Triage each warning by classifying it as one of the following: \textit{False Positive}, \textit{Intentional} or \textit{Bug}. Do not use the built-in Triage tool. Write your classification and explanations directly in your report. Below are descriptions of each triage classification:
+
+\begin{itemize}
+	\item \textbf{False Positive}: The warning does not indicate a fault or deficiency.
+	\item \textbf{Intentional}: You believe the warning points to code that the developer \textbf{intentionally} created that is incorrect (contains a fault) or considered bad practice.
+	\item \textbf{Bug}: The warning points to a defect (a fault or bad practice) in the code.
+\end{itemize}
+
+If you classify the warning as \textit{False Positive}, provide an explanation as to why you believe this is the case. If you classify the warning as \textit{Intentional}, explain how the code can be re-factored to remove the warning, or explain why it should be left as-is. If you classify the warning as bug, provide the faulty lines (1--2 lines is often enough, including the file name and line numbers) and a description of a proposed bug fix.
+
+The difference between False Positive/Intentional and Intentional/Bug is not always clear, so there is not necessary one unique good classification. Make sure you explain clearly your choice!
+
+For details on each Coverity checker, read the checker documentation found on ecelinux (see  \url{https://ece.uwaterloo.ca/~lintan/courses/testing/coverity.html\#reference\_material}). Information on FindBugs checkers can be found at \url{http://findbugs.sourceforge.net/bugDescriptions.html}.
+
+The report for this part should be no more than 4 pages. Be concise. 
+
+\subsection*{(b) Analyzing Your Own Code}
+
+Run Coverity on your own code from part (I) (a). 
+See instructions on \url{https://ece.uwaterloo.ca/~lintan/courses/testing/coverity.html} to analyze your code with Coverity Connect interface. 
+Once your project is uploaded on the web interface, you must \textbf{make it inaccessible to other students: connect on \url{http://ecelinux1.uwaterloo.ca:8080} with your credentials. 
+Click on ``Configuration" , ``Projects \& Streams" and Select your project. 
+In the ``Roles" tab, click on ``add" and check ``\underline{No Access}" for the group ``Students".}
+
+
+You learn more from having the tool find defects in code that you wrote, fixing the problem and seeing the defect go away. Discuss two of the bugs detected by Coverity using up to 1 page. If Coverity finds no bugs, what are the possible reasons?  
+
+Include the results from your analysis with your submission. Put them 
+in directory \texttt{pii}.
+
+You can find instructions on how to use Coverity to build and analyze your code at \url{https://ece.uwaterloo.ca/~lintan/courses/testing/coverity.html}. 
+
+%We have provided a php script to convert the Coverity xml output file to a prettier format. 
+%You can use this site (\url{https://ece.uwaterloo.ca/~qhanam/read-errors.php}) to make Coverity's xml output easier to read. 
+
+\end{document}
