@@ -70,20 +70,17 @@
   \end{list}  }
 \begin{document}
 
-\lecture{14 --- February 3, 2017}{Winter 2017}{Patrick Lam}{version 1}
+\lecture{14 --- February 3, 2017}{Winter 2017}{Patrick Lam}{version 2}
 
 \subsection*{Mutation Testing}
 The second major way to use grammars in testing is mutation testing.
-Strings are usually programs, but could also be inputs, especially for
-testing based on invalid strings.  
-%% Two kinds of strings:
-%% \begin{itemize}
-%% \item invalid strings
-%% \item valid strings mutated from other valid strings
-%% \end{itemize}
+For our purposes, strings will always be programs. We can use mutation testing in
+two ways: 1) as a way of evaluating how good another coverage criterion actually is; 
+and 2) as a way of improving a test suite.
 
 \begin{defn}
-Ground string: a (valid) string belonging to the language of the grammar.
+Ground string: a (valid) string belonging to the language of the grammar (i.e. 
+a programming language grammar).
 \end{defn}
 
 \begin{defn}
@@ -100,28 +97,30 @@ Mutants may be generated either by modifying existing strings or
 by changing a string while it is being generated.
 
 It is generally difficult to find good mutation operators. One example
-of a bad mutation operator might be to change all predicates to
+of a bad mutation operator might be to change all boolean expressions to
 ``true''.
 
 Note that mutation is hard to apply by hand, and automation is
 complicated.  The testing community generally considers mutation to be
 a ``gold standard'' that serves as a benchmark against which to
-compare other testing criteria against.
+compare other testing criteria against. For example, consider a test suite
+$T$ which ensures statement coverage. What can mutation testing say about
+how good $T$ is?
 
 \paragraph{More on ground strings.} Mutation manipulates ground strings
-to produce variants on these strings. Here are some examples:
+to produce variants on these strings. Typically, the ground string is the original program.
+%Here are some examples:
+%\squishlist
+%\item the program that we are testing; or
+%\item valid inputs to a program.
+%\squishend
+%If we are testing invalid inputs, we might not care about ground strings.
 
-\squishlist
-\item the program that we are testing; or
-\item valid inputs to a program.
-\squishend
-If we are testing invalid inputs, we might not care about ground strings.
+%% \paragraph{Credit card number examples.}
+%% {\sf Valid strings:} %{\tt 4500 0000 0000 1234}; {\tt 4599 2345 1111 3666}.
 
-\paragraph{Credit card number examples.}
-{\sf Valid strings:} %{\tt 4500 0000 0000 1234}; {\tt 4599 2345 1111 3666}.
-
-\noindent
-{\sf Invalid strings:} %{\tt 4599 2345 1111 366i}; {\tt 4522 3433 9x12 ****}.
+%% \noindent
+%% {\sf Invalid strings:} %{\tt 4599 2345 1111 366i}; {\tt 4522 3433 9x12 ****}.
 
 We can also create mutants by applying a mutation operator during generation,
 which is useful when you don't need the ground string.
@@ -129,7 +128,6 @@ which is useful when you don't need the ground string.
 NB: There are many ways for a string to be invalid but still be generated
 by the grammar.
 
-\newpage
 Some points:
 \squishlist
 \item How many mutation operators should you apply to get mutants? \emph{One.}
@@ -137,7 +135,7 @@ Some points:
 \squishend
 
 \section*{Killing Mutants} 
-Generate a mutant $m$ for an original ground string $m_0$.
+Generate a mutant $m$ for an original ground string (program) $m_0$.
 \begin{defn}
 Test case $t$ \emph{kills} $m$ if running $t$ on $m$ gives different 
 output than running $t$ on $m_0$.
@@ -145,16 +143,15 @@ output than running $t$ on $m_0$.
 
 We can also define a mutation score, which is the percentage of mutants killed.
 
-To use
-mutation testing, one would measure the effectiveness of a test
-suite (the mutation score) and keep adding tests until reaching a desired
-mutation score.
+To use mutation testing for generating test cases, one would measure
+the effectiveness of a test suite (the mutation score), and keep adding
+tests until reaching a desired mutation score.
 
 \section*{Program Based Grammars} 
 
-The usual way to use mutation testing is by generating mutants 
-by modifying programs according to the language grammar,
-using mutation operators.
+The usual way to use mutation testing for generating test cases is by
+generating mutants by modifying programs according to the language
+grammar, using mutation operators.
 
 Mutants are \emph{valid programs} (not tests) which ought to behave
 differently from the ground string.
@@ -201,6 +198,7 @@ mutant and keep the test case. The mutant is then \emph{dead}.
 The usual application of program-based mutation is to individual statements
 in unit-level (per-method) testing.
 
+\newpage
 \paragraph{Mutation Example.} Here are some mutants.
 
 {\small
