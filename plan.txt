@@ -23,7 +23,7 @@ L13: how good can your test suite be? JUnit / mutation
 
 https://avandeursen.com/2012/12/21/line-coverage-lessons-from-junit/
 
-L13/L14/L15/L16: how good? mutation -> PIT for Java (old L18/L19/L20)
+L14/L15/L16: how good? mutation -> PIT for Java (old L18/L19/L20)
 
 L16 is (W) Feb 8.
 

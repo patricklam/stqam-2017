@@ -24,9 +24,9 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 2, version 0.9}
+Assignment/Lab 2, version 0.95}
 \author{Patrick Lam \\
-{Release Date:  January 30, 2017} \\
+{Release Date:  February 2, 2017} \\
 }
 \renewcommand{\today}{}
 \maketitle
@@ -37,23 +37,88 @@ Assignment/Lab 2, version 0.9}
 {\bf Submit: via ecgit }\\
 \end{center}
 
+\section*{Getting set up}
+Same as last time, but this time {\tt a2} instead of {\tt a1}. There is a Vagrant VM description,
+but you shouldn't need it.
+
+Tools used: python (sort of optional); g++/make (very optional); Selenium (required).
+
+\section*{Submission summary}
+Here's what you need to submit in your fork of the repo. Be sure to commit
+and {\bf push} your changes back to {\tt ecgit}.
+\begin{enumerate}
+\item in directory {\tt q1}, your modified {\tt generate.py} file (unless you've mailed me to tell me that you're not using Python);
+\item in directory {\tt q2}, file {\tt mutants.pdf} as described in the question;
+\item in directory {\tt q3}, either file {\tt testcases.txt} or {\tt testcases.pdf}, which includes your test cases and the minimized test case and explanation; and, in directory {\tt shared/selenium/src/test/java/se465}, file {\tt CalcSuite.java} containing your test cases;
+\item in directory {\tt shared/selenium/src/test/java/se465}, files {\tt CalculatorPageObject.java}, {\tt OriginalCalculatorPageObject.java}, {\tt FrancaisCalculatorPageObject.java}, along with files {\tt RefactoredCalcSuite.java} and {\tt FrancaisCalcSuite.java}.
+\end{enumerate}
+ 
+ \begin{center}
+ \begin{tabular}{c|cc}
+ Question   &  TA in Charge \\ \hline
+1 & (mostly machine) \\ 
+2 & TBA \\ 
+3 & TBA \\ 
+4 & TBA \\
+5 & TBA
+ \end{tabular}
+ \end{center}
+
+ \newpage
 % due after L20
 \section*{Question 1 (10 points)}
 
-In the {\tt shared/icalendarlib} directory, you will find an implementation of
-an iCalendar {\tt ics} file parser.
+Your task is to write code to randomly generate valid iCalendar {\tt
+  .ics} files. You can find the specification at
 
-Your task is to generate {\tt ics} files to crash {\tt icalendarlib} or to cause memory errors
-as measured by {\tt valgrind} or other tools. You can do this either by manually hand-crafting
-{\tt ics} files (not recommended) or else by writing a fuzzing tool to create them.
+\begin{center}
+  \url{https://tools.ietf.org/html/rfc5545}
+\end{center}
+Although you will be marked against the full specification, following
+the description of the subset here will suffice.
 
-You can find some sample {\tt ics} files here:\\
+\begin{itemize}
+  \item an {\tt ics} file starts with a {\tt BEGIN:VCALENDAR} line and
+    ends with an {\tt END:VCALENDAR} line. It must also contain a {\tt
+      VERSION} and {\tt PRODID} line. (The provided code generates
+    these for you.)
+  \item your {\tt ics} file should contain a sequence of events.  Each
+    event starts with {\tt BEGIN:VEVENT} and ends with {\tt
+      END:VEVENT} and contains a set of components.  Each event must
+    contain UID, DTSTAMP and DTSTART components. Valid iCalendar
+    events may contain other components, and we'll be checking that
+    your events do contain some other components.
+  \item the {\tt UID} must be a string that is unique per-event;
+  \item the {\tt DTSTAMP} and {\tt DTSTART} components must contain dates/times, which are
+    yyyymmddThhmmssZ, with T and Z literal and dates/times as appropriate.
+  \item other valid components include {\tt LOCATION}, {\tt SUMMARY}, and {\tt DTEND}.
+\end{itemize}
+
+You will find a {\tt generate.py} file with skeleton code in the {\tt q1} directory of your repo.
+You can also find a number of sample {\tt ics} files in the {\tt shared/icalendarlib} directory.
+I can run the Python file with {\tt python generate.py} at a prompt.
+
+You are not required to use the skeleton {\tt generate.py}; if you choose to write your own
+generator, email me (Patrick) to let me know. I suspect that the path of least resistance is
+using the provided skeleton. You just need to add new rules to the CFG at the end of {\tt generate.py}
+and new special productions to {\tt generate\_special\_production}. (My solution adds 4
+special productions and 9 {\tt add\_prod} lines to the CFG; you don't really need to know
+Python to solve this problem, just pattern-match against what's there already.)
+
+\paragraph{Marking scheme.} We will mark this by running your code 20 times to generate
+          {\tt ics} files. We then check that the files are different and that they include more
+          than zero events and also more than zero optional components. Finally, we'll check
+          your generated files for validity against the iCal spec using an automated tool.
+          (Details to come).
+
+\paragraph{Bonus (0 marks).} Can you create valid {\tt ics} files that break the app in {\tt shared/icalendarlib}? (I can't.)
+
+%In the {\tt shared/icalendarlib} directory, you will find an implementation of
+%an iCalendar {\tt ics} file parser, which can (perhaps) validate your generated files.
+% https://icalendar.org/validator.html
+          
+You can find links to more sample {\tt ics} files here:\\
 \url{http://apple.stackexchange.com/questions/125338/calendar-ical-ics-format}
-
-and the {\tt ics} file format specification here:\\
-\url{https://tools.ietf.org/html/rfc5545}
-
-TODO: more details about {\tt ics}; edit the test harness to take an input file.
 
 \section*{Question 2 (10 points)} 
 
@@ -81,16 +146,15 @@ int list_has_cycle(NODE *list)
 
 \section*{Question 3 (10 points)}
 
-Something about test automation?
-
-\section*{Question 4 (10 points)}
-
 In your repository, you will find a JavaScript application at {\tt
   shared/calc/index.html}. I wrote this application (or at least
 ported it from the Internet). It uses a Pratt parser to parse a simple expression language and evaluate the given expression.
 
-Here is a grammar for this application.
+Here is a grammar for this application. The \verb+^+ operator is supposed to denote
+exponentiation.
 
+\begin{center}
+\begin{minipage}{3in}
 \begin{grammar}
   <expr> ::= number 
          \alt `-' <expr>
@@ -102,49 +166,61 @@ Here is a grammar for this application.
          
   <number> ::= [`0' - `9']$^+$
 \end{grammar}
-
+\end{minipage}
+\end{center}
 
 Your task is to manually (or otherwise) generate a set of test cases
 for this application and to use Selenium to automate these test
 cases. You shouldn't need to look at the application source
-code. Specifically:
+code, but you do need to look at the HTML of {\tt shared/calc/index.html}. Specifically:
 
 \begin{itemize}
-\item (2 points) Generate 10 test cases for the application. Specify the input along with the actual and expected output. Some of the inputs should be within the language recognized by the application, while others should be outside the language. Be sure to choose interesting test cases.
+\item (2 points) Generate 10 test cases for the application. Specify the input along with the actual and expected output. Some of the inputs must be within the language recognized by the application, while others must be outside the language. Be sure to choose interesting test cases.
 
-\item (8 points) Use Selenium to automate your 10 test cases. In the {\tt shared/selenium} directory in your repo, you will find a {\tt SeleniumExample}. You can run tests from this example using the command:
+\item (3 points) The following test case exposes a bug in the application:
+
+\begin{verbatim}
+  2+(8*3/4)^4*(1+3+5)*2-4*(3/2)+9*3
+\end{verbatim}
+
+Minimize this test case. That is, produce a minimal-length subset of this test case---not necessarily using contiguous characters---which shows the same error. Explain the cause of the bug as well as the expected output.
+
+\item (5 points) Use Selenium to automate your 10 test cases. In the {\tt shared/selenium} directory in your repo, you will find a {\tt SeleniumExample}. You can run tests from this example using the command:
 
 \begin{verbatim}
 mvn test "-Dtest=se465.SeleniumExample#test*" -Dwebdriver.base.url=http://www.google.com
 \end{verbatim}
 
-Your test suite should be called {\tt se465.CalcSuite} and we should be able to run your tests with the command:
+Your test suite should be called {\tt se465.CalcSuite} and we should be able to run your tests with this command:
 
 \begin{verbatim}
-mvn test "-Dtest=se465.CalcSuite#test*" \
-     -Dwebdriver.base.url=file:///<put your a2 directory here>/shared/calc/index.html
+mvn test "-Dtest=se465.CalcSuite#test*"
 \end{verbatim}
 
 We will check that your tests exercise the functionality that you specified in the first part.
 
-\item (5 bonus points) Fix bugs in the application (submit a diff).
+Useful reference:
+
+\url{https://seleniumhq.github.io/selenium/docs/api/java/org/openqa/selenium/WebElement.html}
+
+%\item (5 bonus points) Fix a bug in the application (submit a diff).
 \end{itemize}
 
 %fuzz these cases?
 
-\section*{Question 5 (10 points)}
+\section*{Question 4 (20 points)}
 
-If all goes according to plan, I'll describe the Page Object design pattern in Lecture 19. Your task is to create Page Objects for the JavaScript calculator. This will allow your tests to generalize to {\tt francais.html} and
-{\tt eval.html}.
+If all goes according to plan, I'll describe the Page Object design pattern in Lecture 19 (and hope to have notes up before that). Your task is to create Page Objects for the JavaScript calculator. This will allow your tests to generalize to {\tt francais.html} (and even
+{\tt eval.html}, though we won't use that).
 
 \begin{itemize}
-\item (6 points) In this part, we'll create page objects. Create a generic Page Object interface {\tt CalculatorPageObject}, along with an implementation {\tt OriginalCalculatorPageObject}, which summarizes the UI elements on the {\tt index.html} page. It should allow you to access the controls that your tests from Question 4 need. Also, create an additional Page Object {\tt FrancaisCalculatorPageObject} which implements the same interface but which works with {\tt francais.html}. 
-  \item (4 points) Copy {\tt se465.CalcSuite} to {\tt se465.RefactoredCalcSuite} and {\tt se465.RefactoredFrancaisCalcSuite}. Modify both of the refactored suites to use the page objects that you created for the first part. (This could be done via dependency injection as well, but we haven't talked about that. However, I will accept a single {\tt RefactoredCalcSuite} if you include instructions on how to inject dependencies.)
+\item (10 points) In this part, we'll create page objects. Create a generic Page Object interface {\tt se465.CalculatorPage}, along with an implementation {\tt se465.OriginalCalculatorPage}, which encapsulates the UI elements on the {\tt index.html} page. (I created the implementation first and then reverse-engineered the interface). These objects should allow you to access the controls that your tests from Question 4 need. Also, create an additional Page Object {\tt se465.FrancaisCalculatorPage} which implements the same interface but which works with {\tt francais.html}. 
+  \item (10 points) Copy {\tt se465.CalcSuite} to {\tt se465.RefactoredCalcSuite}. Modify the refactored suite to use both of the page objects that you created for the first part; you should have two tests in the refactored suite for each test in the original suite. It's OK for your English and French tests to essentially be the same except for the choice of the WebDriver, or you could be more clever. (This could be done via JUnit Parameters, but we haven't talked about that.)
 \end{itemize}
 
 References for this question:
 
-\url{http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference}
+\url{http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference}\footnote{use a {\tt WebDriver} rather than a {\tt Selenium} object as in the example.}
 \\
 \url{https://martinfowler.com/bliki/PageObject.html}
 
