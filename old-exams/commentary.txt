@@ -1,0 +1,68 @@
+2010 midterm practice:
+
+Q1: we haven't gone in enough depth in that area to have a question like that
+Q2: no comment
+Q3: yes
+Q4: ("related question") yes
+Q5: yes
+Q6: maybe
+
+2010 midterm:
+
+Q1: no PPC
+Q2: we only briefly mentioned prime paths; no PPC, no ADUPC
+Q3: we didn't cover EPC in depth but it would be fair game for me to say "this is EPC, compare it with EC"
+Q4: definitely
+
+2010 final:
+
+Q1: no comment
+Q2: you should know what test requirements are and how you satisfy them; but we didn't talk about ADC.
+Q3: no logic coverage
+Q4: yes, I told the students we'd be reusing this question. we only briefly mentioned prime paths; no PPC, no ADUPC
+Q5: yep!
+Q6: have not covered input spaces yet, probably won't cover
+Q7: will be on post-midterm material
+
+2015 midterm:
+
+Q1: a) yes; b) no (in general we didn't talk much about subsumption); c, d) yes but not on midterm
+Q2: yes
+Q3: yes
+Q4: we haven't talked enough about defs and uses
+Q5: a) yes; b, c, d, e) no
+
+2015 final:
+
+Q1: a) not with respect to these criteria; I only talked about criteria which are more used
+b, c, d, e, f) yes but not yet
+Q2: no
+Q3: a) yes; b, c, d) no
+Q4: yes
+Q5: no
+Q6: yes
+Q7: no
+Q8A: yes but not yet
+Q8B: no
+
+2016 midterm:
+
+Q1: definitely
+Q2: a, b, c, d) yes but not yet
+Q3: yes
+Q4: no
+Q5: a, e) yes; b-d) no
+
+2016 final:
+
+Q1: a, c, d) yes but not yet; b, e) no
+Q2: yes but not yet
+Q3: a) yes; b) no; c) yes; d) mostly not except for the criteria we've seen; e) yes
+Q4: no
+Q5: yes
+Q6: no
+Q7: yes
+Q8: no
+Q9: no
+
+
