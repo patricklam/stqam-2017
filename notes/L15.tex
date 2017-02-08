@@ -70,7 +70,7 @@
   \end{list}  }
 \begin{document}
 
-\lecture{15 --- February 6, 2017}{Winter 2017}{Patrick Lam}{version 0}
+\lecture{15 --- February 6, 2017}{Winter 2017}{Patrick Lam}{version 1}
 
 \subsection*{Weak and strong mutants}
 So far we've talked about requiring differences in the \emph{output}
@@ -186,7 +186,7 @@ operators will encode typical programmer mistakes, e.g. by changing
 relational operators or variable references; or common testing heuristics, 
 e.g. fail on zero. Some mutation operators are better than others.
 
-The book contains a more exhaustive list of mutation operators.  How
+You can find a more exhaustive list of mutation operators in the PIT documentation: \url{http://pitest.org/quickstart/mutators/}.  How
 many (intraprocedural) mutation operators can you invent for the
 following code?
 
@@ -280,11 +280,11 @@ $\Longrightarrow$ {\tt x = 3 * abs(a)}, {\tt x = 3 * -abs(a)}, {\tt x = 3 * fail
 \paragraph{Summary of Syntax-Based Testing.}~\\
 
 \begin{tabular}{l|ll}
-& Program-based & Input Space \\ \hline
+& Program-based & Input Space/Fuzzing \\ \hline
 Grammar & Programming language & Input languages / XML \\
 Summary & Mutates programs / tests integration & Input space testing \\
-Use Ground String? & Yes (compare outputs) & No \\
-Use Valid Strings Only? & Yes (mutants must compile) & Invalid only \\
+Use Ground String? & Yes (compare outputs) & Sometimes \\
+Use Valid Strings Only? & Yes (mutants must compile) & No \\
 Tests & Mutants are not tests & Mutants are tests \\
 Killing & Generate tests by killing & Not applicable \\
 \end{tabular}
