@@ -24,7 +24,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 2, version 1}
+Assignment/Lab 2, version 1.1}
 \author{Patrick Lam \\
 {Release Date:  February 2, 2017} \\
 }
@@ -57,11 +57,10 @@ You may choose to move the {\tt q1} and {\tt q2} files into the {\tt shared} sub
  \begin{center}
  \begin{tabular}{c|cc}
  Question   &  TA in Charge \\ \hline
-1 & (mostly machine) \\ 
-2 & TBA \\ 
-3 & TBA \\ 
-4 & TBA \\
-5 & TBA
+1 & Jun \\
+2 & Parsa \\
+3 & Song \\
+4 & Rollen \\
  \end{tabular}
  \end{center}
 
@@ -123,7 +122,7 @@ You can find links to more sample {\tt ics} files here:\\
 
 \section*{Question 2 (10 points)} 
 
-Consider the following implementation of the cycle-finding algorithm from \url{http://en.literateprograms.org/Floyd%27s_cycle-finding_algorithm_%28C%29}. (We've included the complete implementation from there in the skeleton at {\tt q2/cycle-finder.c}, including a test harness.) In your {\tt q2/mutants.pdf} file, propose two non-stillborn and non-equivalent mutants of this function. Write down test inputs which strongly kill these mutants (syntax doesn't matter) and the expected output of your test cases on the original code and on the mutant.
+Consider the following implementation of the cycle-finding algorithm from \url{http://en.literateprograms.org/Floyd%27s_cycle-finding_algorithm_%28C%29}. (We've included the complete implementation from there in the skeleton at {\tt q2/cycle-finder.c}, including a test harness.) In your {\tt q2/mutants.pdf} file, propose two non-stillborn and non-equivalent mutants of this function. Clearly indicate where you've mutated the ground string. Write down test inputs which strongly kill these mutants (syntax doesn't matter) and the expected output of your test cases on the original code and on the mutant.
 
 \begin{lstlisting}
 typedef struct node_s {
@@ -173,7 +172,15 @@ exponentiation.
 Your task is to manually (or otherwise) generate a set of test cases
 for this application and to use Selenium to automate these test
 cases. You shouldn't need to look at the application source
-code, but you do need to look at the HTML of {\tt shared/calc/index.html}. Specifically:
+code, but you do need to look at the HTML of {\tt shared/calc/index.html}.
+
+In your test suite, I recommend setting {\tt baseUrl} to one of:
+\begin{itemize}
+\item \verb!baseUrl = "file://" + System.getProperty("user.dir") + "/../calc/index.html";!
+\item \verb!baseUrl = "https://patricklam.ca/files/calc.html";!
+\end{itemize}
+
+Specifically:
 
 \begin{itemize}
 \item (2 points) Generate 10 test cases for the application. Specify the input along with the actual and expected output. Some of the inputs must be valid strings for the application, while others must be invalid. Be sure to choose interesting test cases.

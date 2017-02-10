@@ -23,20 +23,18 @@ L13: how good can your test suite be? JUnit / mutation
 
 https://avandeursen.com/2012/12/21/line-coverage-lessons-from-junit/
 
-L14/L15/L16: how good? mutation -> PIT for Java (old L18/L19/L20)
+L14/L15/L16/L17: how good? mutation -> PIT for Java (old L18/L19/L20)
 
 L16 is (W) Feb 8.
 
 ## Engineering test suites (L17-25)
 
-L17: why write tests?
+L18: why write tests?
 https://hackernoon.com/treat-yourself-e55a7c522f71
 
 on test automation (http://www.ontestautomation.com/not-so-useful-metrics-in-test-automation/) At its heart, test automation is – or at least should be – meant to increase the effectiveness of testing efforts.
 
-L18: Selenium, web testing (L34)
-
-L19: Page object design pattern
+L19: Selenium, web testing (L34), Page object design pattern
 
 http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference
 https://martinfowler.com/bliki/PageObject.html
