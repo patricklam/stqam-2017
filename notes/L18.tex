@@ -1,0 +1,123 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage{hyperref}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage{enumitem}
+
+\begin{document}
+
+\lecture{18 --- February 13, 2017}{Winter 2017}{Patrick Lam}{version 0}
+
+\section*{Test design principles}
+Now that I've sold you on why you should have tests, let's talk about how your tests should
+be structured.
+
+Some more references: 
+\begin{itemize}[noitemsep]
+\item Gerard Meszaros. \emph{xUnit Test Patterns: Refactoring Test Code}.
+\item Kent Beck. \emph{Test Driven Development: By Example}.
+\item Roy Osherove. \emph{The Art of Unit Testing: with examples in C\#}.
+\end{itemize}
+
+Once again, I'm summarizing the article by Kat Busch, ``A beginner's guide to automated testing.'' \\
+\url{https://hackernoon.com/treat-yourself-e55a7c522f71}
+
+\paragraph{Many small tests, not one big test.} My Assignment 1 Question 1 solution had 14 test cases.
+Each test case verified a different part of the behaviour. Out of 232 solutions, only 21 had fewer
+than 5 test cases. So most of you intuitively know this already. But why is this good?
+
+\begin{itemize}
+\item easier to deal with failures: you get a specific failed test case, ideally with a descriptive name.
+This is easier to debug.
+\item easier to understand what's being tested: again, because you used descriptive names, it's easier
+for future you, or someone else, to understand whether they need to add a new test case or not.
+Example: {\tt test\_integer\_addition}, {\tt test\_integer\_subtraction}, etc.
+\end{itemize}
+
+\paragraph{Make it easy to add new tests.} I think that was the case for you on A1Q1 eventually,
+based on my {\tt testEmpty} method. You just had to emulate that test
+case: create inputs; create a {\tt FormattedCommandAlias}; and assert
+against the result. Using @Before and @After setup and teardown
+methods can help too (but was overkill for our case). ``You should
+always make it easy for people to do the right thing.''
+
+\paragraph{Unit versus integration tests.} Unit tests are more low-level and focus on 
+one particular ``class, module, or function''. They should execute quickly. Sometimes you 
+need to create fake inputs (or mocks) for unit tests; we'll talk about that too. You should generally
+not use an entire real input for a unit test.
+
+As we discussed before, many interesting things happen when different units interact.
+Integration tests verify end-to-end functionality. They're slower, flakier, and harder both
+to write and use. Focus on unit tests while developing code. But you eventually need
+integration tests to make sure the user sees the right hting.
+
+\paragraph{``TODO: write tests.''} Should you write the tests first? Test-Driven Development says, well,
+tests first, and only write as much code as needed to pass the tests that you write. 
+A middle ground might be good: write some code, write some tests, repeat.
+
+\begin{quote}
+You'll find that writing tests as you go makes your interfaces better and makes your code more testable. If you find yourself writing something hard to test, you’ll notice it early on when there’s still time to improve the design.
+\end{quote}
+
+\paragraph{Flaky tests are terrible.} Although your A1Q1 tests should have been 
+deterministic, not all tests are deterministic. Some tests fail a small percentage
+of the time. 
+\begin{itemize}
+\item timeouts can fail when something takes surprisingly long;
+\item iterators can return items in random order;
+\item random number generators are, well, random.
+\end{itemize}
+Try really hard to make your tests not flaky. There are ways of dealing with them,
+but they're not good.
+
+\paragraph{Looking inside the system under test.}
+Even in A1Q1 I had to expose some of the internal state, namely the command that actually
+got executed by the {\tt commandSender}. As much as possible, try to avoid testing internal
+state, but rather only what is externally visible. This makes your tests more resilient to rewrites,
+and also focuses the test on what actually matters.
+
+\end{document}

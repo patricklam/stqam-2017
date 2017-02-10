@@ -1,0 +1,120 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage{hyperref}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage{enumitem}
+
+\begin{document}
+
+\lecture{17 --- February 10, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\section*{Engineering Test Suites}
+We are going to move onto the second part of the course. In the first
+part of the course, you learned ways to make sure that your test
+suites are exhaustive enough.  In this part of the course, you will
+learn about making your test suites better as engineered artifacts.
+
+\paragraph{Why tests?} Let's start by talking about what test suites can do for you (as a developer).
+
+Reference: Kat Busch. ``A beginner's guide to automated testing.'' \\
+\url{https://hackernoon.com/treat-yourself-e55a7c522f71}
+
+\paragraph{Anecdote: ``TODO: write tests.''} We're all busy, right?
+Surely tests are less important than writing actual code solve problems.
+And it can be hard to set up the test.
+
+When you're writing code, you clearly want to know that it can at least
+work. So you may have a development setup. Kat Busch describes writing 
+a Java server to interface with an Android app. Her development setup
+involved manual testing:
+\begin{itemize}[nolistsep]
+\item set up test server on dev machine;
+\item install app on test phone;
+\item manually create a test case on test phone.
+\end{itemize}
+She writes: ``Obviously I didn't test very many code paths because it was just so tedious.''
+
+Since Dropbox (her employer at the time) used code review, she actually had
+to write tests to pass code review, even if it was annoying to do so.
+
+``Lo and behold, I soon needed to fix a small bug.'' But, of course, 
+it's easy to introduce even more bugs when fixing something.
+Fortunately, she had some tests.
+
+\begin{quote}
+I ran the tests. Within a few seconds, I knew that everything still worked! Not just a single code path (as in a manual test), but all code paths for which I’d written tests! It was magical. It was so much faster than my manual testing. And I knew I didn’t forget to test any edge cases, since they were all still covered in the automated tests.
+\end{quote}
+
+Not writing tests is incurring technical debt. You'll pay for it
+later, when you have to maintain the code. Having tests
+allows you to move faster later, without worrying about breaking your
+code.
+
+\paragraph{Another reason for tests: avoiding regressions.} 
+Code often lives in a web of dependencies; often, code isn't right or
+wrong on its own, but rather in terms of how it's used.  ``If you
+haven’t written tests, then there’s no reliable way for other coders
+to know that their commit has impacted yours.''  The biggest codebases
+we deal in your courses are tens of thousands of lines, but industrial
+codebases are millions of lines. Even though you may have worked with
+them on co-op, you were only there for a short time, not years.
+
+\begin{quote}
+If your code is still in the codebase a year (or five) after you’ve
+committed it and there are no tests for it, bugs will creep in and
+nobody will notice for a long time.
+\end{quote}
+
+She continues with an anecdote about a user-facing feature broken 
+due to a seemingly-unrelated change. Test cases can help prevent 
+this kind of brokenness.
+
+\begin{quote}
+{\bf If it matters that the code works you should write a test for it.} There is no other way you can guarantee it will work.
+\end{quote}
+
+\end{document}
