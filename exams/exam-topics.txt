@@ -1,0 +1,29 @@
+Viable midterm exam questions:
+
+- improve coverage at function scale
+- mutation, e.g. question about evaluating suites
+   potential question 1:
+   * here is a test suite that achieves stmt coverage
+   * find a test case that reveals a bug (not covered by stmt coverage)
+   * propose a mutant that is killed by that test case, and a mutant that is killed by a provided test
+   porential question 2 (related to 73%/50%/40% numbers)
+   * here's a bug and some code
+   * write a test case to find the bug;
+      does it kill a mutant? [or, give a bug not killable by mutation]
+      does it improve stmt coverage? branch coverage?
+      (also could look backwards)
+- general definitions-based questions
+- fault/failure/defect
+- test cases from design docs
+- input space coverage
+   * grammars: write one based on some sample inputs, produce cases based on it
+- exploratory testing?
+- statement coverage: show something uncoverable
+- why not achieving statement/branch coverage for this example
+- split test into subtests
+
+Later on in the course:
+
+- test case refactoring
+- static vs dynamic analysis; false positive vs false negative; type systems
+- test plan for a method/class [in broad sense; include method/class rewriting; maybe]

@@ -1,0 +1,25 @@
+The 2017 midterm should have 5 questions.
+
+Potential question list:
+
+* [mutation] a question like 2015 Q3/2016 Q3
+* [fault/failure/defect] a question like 2016 Q1
+* [statement/branch coverage] Here is some sample code. Produce a CFG and a test set that achieves statement or branch coverage.
+* [mutation, related to 73%/50%/40% numbers]
+   * here is a program and a test suite
+   * find a test case that reveals a bug, but which does not increase stmt coverage
+   * propose a mutant that is killed by that test case,
+     and a mutant that is killed by a test in the suite I gave you; or,
+   * does there exist a mutant which can be killed by it? [or, provided bug not killable by mutation]
+     does your test case improve stmt coverage? branch coverage?
+* [grammars] here are some inputs; create a grammar for this language, write down inputs inside/outside that language
+* [statement coverage] here is some Java code on which we can't achieve 100% statement/branch coverage (perhaps because of CFG translation issues); why not?
+* [creating inputs] I provide code and test cases. Test cases all get filtered out at a bottleneck in the code. Provide cases that explore more of the code. Explain the phenomenon.
+* [test design] here is a JUnit test which contains many subtests; split it into separate subtests
+* [FSM] read a document describing a system; create an FSM and test cases for that system
+* short answers:
+    * exploratory testing
+    * short-circuit evaluation
+    * nondeterminism
+    * fuzzing
+    * how much stmt coverage to aim for, and on what justification?
