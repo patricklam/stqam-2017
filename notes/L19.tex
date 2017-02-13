@@ -1,0 +1,202 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage{hyperref}
+\usepackage{url}
+%\usepackage{algorithm2e}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage{enumitem}
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\usepackage{fontspec}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+
+\begin{document}
+
+\lecture{19 --- February 15, 2017}{Winter 2017}{Patrick Lam}{version 0}
+
+\section*{Selenium\footnote{\url{http://seleniumhq.org}}}
+Selenium is a tool for (among other things) testing web applications.
+In its full generality, ``Selenium automates browsers'' and lets you
+programmatically drive Web browsers.  For the purposes of this class,
+you can use Selenium to automate web application tests, testing
+multiple browsers and multiple platforms.
+
+In Assignment 2, I asked you to use Selenium to test a web application.
+I've simplified the setup by not actually launching a browser; Selenium
+contains a ``headless'' (GUI-less) browser simulator called {\tt HtmlUnit}.
+Selenium can also drive real browsers, and it's interesting to watch it do that.
+Furthermore, you can set up a bunch of different computers and drive them from
+a single Selenium script.
+
+Selenium also includes record-replay functionality (the Selenium IDE, a Firefox
+add-on), but I won't discuss it.
+
+\paragraph{Anatomy of a Selenium Test.} There are many bindings for Selenium, but
+we'll talk about using Selenium from JUnit.
+
+Like any other test, there is setup and teardown; for Selenium, you
+ask for the browser to be started and terminated.
+
+\begin{lstlisting}
+  @Before
+  public void openBrowser() {
+    baseUrl = System.getProperty("webdriver.base.url");
+    driver = new FirefoxDriver(); // could also be Chrome, IE, HtmlUnit, etc.
+    driver.get(baseUrl);
+  }
+
+  @After
+  public void saveScreenshotAndCloseBrowser() throws IOException {
+    driver.quit();
+  }
+\end{lstlisting}
+
+Note that we create a browser and ask it to load a page.
+
+\newpage
+Now let's look at a particular test. Like any other test, it sets up the test state,
+calls upon the system under test to do the action, and checks the result.
+
+\begin{lstlisting}
+  @Test
+  public void testPageTitleAfterSearchShouldBeginWithDrupal() throws IOException {
+    assertEquals("The page title should equal Google at the start of the test.",
+                 "Google", driver.getTitle());  // (1)
+    WebElement searchField = driver.findElement(By.name("q")); // (2)
+    searchField.sendKeys("Drupal!"); // (3)
+    searchField.submit();            // (3)
+    assertTrue("The page title should start with the search string after the search.", // (4)
+               (new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+                       public Boolean apply(Object d) {
+                           return ((WebDriver)d).getTitle().toLowerCase().startsWith("drupal!");
+                       }
+                   })
+               );
+  }
+\end{lstlisting}
+
+Here's what's going on.
+\begin{enumerate}[noitemsep]
+\item The initial {\tt assertEquals} is based on an assumption that the test is called on
+  {\tt www.google.com}.
+\item Next, the test searches for the appropriate input on the
+  webpage. (For Java tests, we don't need to search for the method
+  that we're calling. Here, we do.) Selenium includes various ways to
+  search the Document Object Model.
+\item Having found the appropriate field, the test sends input and submits the form.
+  This is analogous to calling the methods on the System Under Test.
+\item Finally, the test waits for the action to complete (with {\tt
+  WebDriverWait}). Once complete, it checks that the outputs are
+  correct; in this case, it checks that the title of the resulting
+  page starts with ``drupal!''.
+\end{enumerate}
+
+\paragraph{Waiting.} In the above example, the test simply waits until the page loads (or 10 seconds). Selenium tests can also wait for more sophisticated conditions, for instance until a certain element appears on the page. (This is relevant when the JavaScript is adding content to the page dynamically).
+
+Example:
+\begin{lstlisting}
+WebDriverWait wait = new WebDriverWait(driver, 10);
+WebElement element =
+  wait.until(ExpectedConditions.elementToBeClickable(By.id("someid")));
+\end{lstlisting}
+
+\section*{Page Objects}
+The above example hard-coded the ``q'' field on Google's page.
+But things change. We can fix that by introducing a level of
+indirection.
+
+References:
+
+\url{http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference}\\
+\url{https://martinfowler.com/bliki/PageObject.html}
+
+A page object should abstractly represent the actions that
+a user can take on a page and allow the caller to query
+the state of the page (if necessary). The Selenium documentation
+suggests a page object for a sign-in page:
+
+\begin{lstlisting}
+public class SignInPage {
+  private WebDriver driver;
+
+  public SignInPage(WebDriver driver) {
+    this.driver = driver;
+    if(!driver.getTitle().equals("Sign in page")) {
+      throw new IllegalStateException("This is not sign in page, current page is: "
+      +driver.getLocation());
+    }
+  }
+
+  public HomePage loginValidUser(String userName, String password) {
+    driver.type("usernamefield", userName);
+    driver.type("passwordfield", password);
+    driver.click("sign-in");
+    driver.waitForPageToLoad("waitPeriod");
+
+    return new HomePage(driver);
+  }
+}
+\end{lstlisting}
+
+The documentation suggests that the only verification that
+should occur on a page object is testing that the driver
+points to the right page. Everything else should be done in
+the tests.
+
+The sign-in page object also exposes the sole functionality of the
+page, which is to sign in. It then returns the page that gets loaded
+after sign-in.
+
+Note that the caller does not need to know about the identity of the
+username and password fields. In fact, let's say that a new version of
+the app included Facebook OAuth login. It would suffice to change the
+{\tt SignInPage} to use the new login functionality; no other parts of the test suite would need to change.
+
+In the assignment, I ask you to implement a fairly low-level Page Object, which simply passes the field contents directly to the caller. The sign-in example demonstrates a higher level of abstraction.
+
+\end{document}
