@@ -50,6 +50,7 @@ midterm is after L20
 L21, L22: test refactoring (old L30), refactoring code to be testable (old L36---RPCs, RESTful APIs, micro-services), badly designed tests (old L35)
 L23: continuous integration (Travis), flaky tests
 plam away for L22, L23
+http://nerds.airbnb.com/testing-at-airbnb/
 
 L24: TBA
 L25: testing infrastructure/DevOps (see also P4P L35)
