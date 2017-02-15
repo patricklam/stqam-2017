@@ -39,6 +39,8 @@ L19: Selenium, web testing (L34), Page object design pattern
 http://www.seleniumhq.org/docs/06_test_design_considerations.jsp#chapter06-reference
 https://martinfowler.com/bliki/PageObject.html
 
+https://developers.redhat.com/blog/2017/02/13/testing-testing-gcc/
+
 L20: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
 
 answer questions about midterm; mock objects (L30, brief)
