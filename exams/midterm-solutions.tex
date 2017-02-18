@@ -101,7 +101,7 @@ A more clever solution (thanks Jun!) would be:
     Random r = new Random();
     while (true) {
       int a = r.nextInt(), b = r.nextInt();
-      computeAngle(a*a, b*b, a*a + b*b + 2*a*b);
+      computeAngle(a*a-b*b, 2*a*b, a*a+b*b); // revised
     }
   }
 \end{lstlisting}
