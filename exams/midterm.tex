@@ -1,0 +1,191 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usetikzlibrary{shapes,arrows,calc,automata}
+
+\lstset{ %
+language=Java,
+basicstyle=\small \ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\usepackage{fontspec}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+
+\begin{document}
+
+\title{Software Testing, Quality Assurance \& Maintenance (ECE453/CS447/SE465): Midterm}
+\author{}
+\renewcommand{\today}{}
+\maketitle
+
+ ~\\[-7em]
+
+\begin{center}
+{\Large February 17, 2017}
+\end{center}
+
+This open-book midterm has 5 questions and 80 points. Answer the
+questions in your answer book. You may consult any printed material
+(books, notes, etc).
+
+
+\section*{Question 1: Test Design (10 points)}
+I've included below some test code from bukkit's {\tt
+  BukkitMirrorTest}.  Split this test into well-designed independent
+subtests. I recommend 5 tests; use your judgment to decide what the
+subtests should be. Write out the valid JUnit test cases after
+splitting. You may write e.g. ``// L4'' to indicate that you are
+including line 4 from the provided code. Write a sentence explaining
+the benefits of splitting the test.
+
+\begin{lstlisting}[basicstyle=\scriptsize \ttfamily]
+  @Test
+  public void bunchOfTests() throws Throwable {
+      assertThat(Modifier.isStatic(bukkit.getModifiers()), is(true));
+      assertThat(bukkit.isAnnotationPresent(Deprecated.class), is(server.isAnnotationPresent(Deprecated.class)));
+      assertThat(bukkit.getReturnType(), is((Object) server.getReturnType()));
+      assertThat(bukkit.getGenericReturnType(), is(server.getGenericReturnType()));
+      assertThat(bukkit.getGenericParameterTypes(), is(server.getGenericParameterTypes()));
+      assertThat(bukkit.getGenericExceptionTypes(), is(server.getGenericExceptionTypes()));
+  }
+\end{lstlisting}
+
+\vspace*{-1em}
+\section*{Question 2: Fuzzing (10 points)}
+% I provide code and a test case generator. Test cases all get filtered out at a bottleneck in the code. Provide a test case generator that explores more of the code. Explain the phenomenon.
+\begin{lstlisting}
+  float computeAngle(int x, int y, int z) {
+    if (x * x + y * y != z * z) {
+      throw new IllegalArgumentException("bad triangle");
+    }
+    return Math.atan2(y, x);
+  }
+\end{lstlisting}
+\begin{itemize}[noitemsep]
+\item (5 points) Write a Java function {\tt naiveComputeAngleTest()} that generates a completely-pseudorandom input triple $(x, y, z)$ for this method and calls it. Would {\tt naiveComputeAngleTest()} give you good insight
+  into what {\tt computeAngle()} does? Explain your answer.
+\item (5 points) Write a Java function {\tt smartComputeAngleTest()} that randomly generates an input that never triggers an {\tt IllegalArgumentException}. You may use {\tt Math.sqrt()}, which returns a double.
+\end{itemize}
+(To get a pseudorandom number: {\tt Random r = new Random(); i = r.nextInt(); })
+
+\newpage
+\section*{Question 3: Short-circuit evaluation (15 points)}
+Here is a simplified version of code from Assignment 1.
+\begin{lstlisting}
+  String buildCommand(String formatString) {
+    // returns the index at which '$' appears in formatString or -1 if not present
+    int index = formatString.indexOf("$");
+    while (index != -1) {
+      if (index > 0 && formatString.charAt(index - 1) == '!') {
+        // removes the '$' at index from formatString
+        formatString = formatString.substring(0, index - 1) + formatString.substring(index);
+        index = formatString.indexOf("$", index);
+        continue;
+      } else {
+        ;
+      }
+      index = formatString.indexOf("$", index + 1);
+    }
+  }
+\end{lstlisting}
+\begin{itemize}[noitemsep]
+\item (5 points) Draw a control-flow graph for this method. Nodes as basic blocks, labelled with line
+  numbers. Explicitly write boolean conditions. (Be careful with the short-circuit evaluation.) I had 7 nodes.
+\item (10 points) Test suite \verb+"$"+, \verb+"!$"+ achieves 100\%
+  statement coverage but jacoco says ``1 branches out of 4 missed'' at
+  the {\tt if} statement. Describe the missing branch and explain why
+  it is missing (for 5 points) and write down a test case that achieves 100\%
+  branch coverage (another 5 points). (Warning: because I removed code, this behaves
+  slightly differently than on the assignment).
+\end{itemize}
+
+\newpage
+\section*{Question 4: Statement and Branch Coverage (20 points)}
+\begin{lstlisting}
+public static List<String> wrap(String input, int line_length) {
+  List<String> rv = new ArrayList<String>();
+  int last_break = -1, last_space = 0;
+  
+  for (int i = 0;
+       i < input.length();
+       i++) {
+    if (input.charAt(i) == ' ') {
+      last_space = i;
+    }
+    
+    if (i - last_break > line_length) {
+      rv.add(input.substring(last_break + 1, last_space));
+      last_break = i;
+    }
+  }
+  if (last_space >= last_break + 1) {
+    rv.add(input.substring(last_break + 1, last_space));
+  }
+  return rv;
+}
+\end{lstlisting}
+
+\vspace*{1em} \noindent
+(a) (5 points) Draw a minimal-node (9) control-flow graph for this method, with
+nodes as basic blocks. Label the nodes with the line numbers on the left.
+
+\vspace*{1em} \noindent
+(b) (10 points) Consider \verb+input = "one three two ", line_length = 9+.
+Argue that this input achieves statement coverage. You may use the fact that the output is:
+\begin{verbatim}
+$ java Justify 9 "one three two "
+one three 
+two
+\end{verbatim}
+
+\vspace*{1em} \noindent
+(c) (5 points) Does my input also achieve branch coverage? Why or why not? (If so, say why; if not,
+say specifically which branch is not covered).
+
+\newpage
+\section*{Question 5: Understanding Mutation (25 points)}
+(a) (10 points) Write down a non-trivial mutant of {\tt wrap()} that
+is killed by {\bf my} test case (from (1b)). (Write the line number that you are changing
+and what you want it to say, e.g.:)
+
+\verb+Line 5: for (int i = -1;+
+
+\noindent
+Explain why my test case
+kills the mutant (show outputs). Also show why the mutant is non-trivial; that is,
+find a non-empty input on which the mutant and the original do not differ.
+% last_break = 0 should work if you give it a one-line input for non-triviality
+
+\vspace*{1em} \noindent
+(b) (5 points) Write down a test case for {\tt wrap()} (from Question
+4) that reveals a bug in the original program. Include actual and expected output.
+(Contract: the concatenation of the strings
+returned from {\tt wrap()} must equal {\tt input}.)
+You do not have to identify or fix the bug.
+  Clearly, this
+test case does not improve statement coverage beyond the input from
+(4b).
+
+\vspace*{1em} \noindent
+(c) (10 points) Write down a different non-trivial mutant of {\tt
+  wrap()} that is killed by {\bf your} test case (from part b) and explain why your test
+case kills the mutant (show outputs).  Again explain why the mutant is non-trivial;
+that is, find a non-trivial input on which the mutant and the original
+do not differ.
+
+Observe that you've used mutation to improve your test suite from what
+it was in (4b).  You generated a mutant, and the test case from (4b)
+killed the mutant from (4c). On the other hand, both statement and branch
+coverage don't get you anything more.
+
+%[or, provided bug not killable by mutation]
+
+%does your test case improve stmt coverage? branch coverage?
+
+
+%\section*{Question 6: Finite State Machines (5 points)}
+%read a document describing a system; create an FSM and test cases for that system
+
+\end{document}
