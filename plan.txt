@@ -54,7 +54,7 @@ L22: derek rayside
 L23: mike godfrey on clones
 
 L21, L22: test refactoring (old L30), refactoring code to be testable (old L36---RPCs, RESTful APIs, micro-services), badly designed tests (old L35)
-L23: continuous integration (Travis), flaky tests
+L23: continuous integration (Travis), flaky tests, hermetic tests
 plam away for L22, L23
 http://nerds.airbnb.com/testing-at-airbnb/
 
