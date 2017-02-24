@@ -1,0 +1,239 @@
+\documentclass{beamer}
+
+\usetheme{Boadilla}
+
+%\includeonlyframes{current}
+
+\usepackage{times}
+\usefonttheme{structurebold}
+\usepackage{listings}
+\usepackage{ragged2e}
+
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage{alltt}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+\usetikzlibrary{shapes}
+\usepackage{amsmath,amssymb}
+\usepackage{rotating}
+\usepackage{ulem}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{tikz}
+\tikzset{
+  every overlay node/.style={
+    draw=black,fill=white,rounded corners,anchor=north west,
+  },
+}
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+
+%\setbeamercovered{dynamic}
+\setbeamertemplate{footline}[page number]{}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{structurebold}
+
+\title{Software Testing, Quality Assurance \& Maintenance---Lecture 24*}
+\author{Patrick Lam}
+\date{March 6, 2017}
+
+\colorlet{redshaded}{red!25!bg}
+\colorlet{shaded}{black!25!bg}
+\colorlet{shadedshaded}{black!10!bg}
+\colorlet{blackshaded}{black!40!bg}
+
+\colorlet{darkred}{red!80!black}
+\colorlet{darkblue}{blue!80!black}
+\colorlet{darkgreen}{green!80!black}
+
+\newcommand{\rot}[1]{\rotatebox{90}{\mbox{#1}}}
+\newcommand{\gray}[1]{\mbox{#1}}
+
+\newenvironment{changemargin}[1]{% 
+  \begin{list}{}{% 
+    \setlength{\topsep}{0pt}% 
+    \setlength{\leftmargin}{#1}% 
+    \setlength{\rightmargin}{1em}
+    \setlength{\listparindent}{\parindent}% 
+    \setlength{\itemindent}{\parindent}% 
+    \setlength{\parsep}{\parskip}% 
+  }% 
+  \item[]}{\end{list}}
+
+
+\lstset{ %
+language=C++,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\part{Using Linters}
+
+\begin{frame}
+\partpage
+\small
+source: \url{jamie-wong.com/2015/02/02/linters-as-invariants/}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{First there was C}
+\begin{changemargin}{2cm}
+Statically-typed languages like C:
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+int main() {
+  printf("%d\n", num);
+  return 0;
+}
+\end{lstlisting}
+Compiler saves you from yourself.\\[1em]
+Guaranteed invariant:\\
+\hspace*{2em} ``if code compiles, all symbols resolve''.
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Less-nice languages}
+\begin{changemargin}{2cm}
+OK, so you try to run that in JavaScript and it crashes right away.\\[1em]
+
+Invariant:\\
+\hspace*{2em} ``if code runs, all symbols resolve''?
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Counterexample}
+\begin{changemargin}{2cm}
+But what about this:
+\begin{lstlisting}
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+\end{lstlisting}
+Nope!
+\end{changemargin}
+\end{frame}
+\begin{frame}[fragile]
+\frametitle{Still no invariants}
+\begin{changemargin}{2cm}
+Invariant:\\
+\hspace*{2em} ``if code runs without crashing, all symbols referenced in the code path executed resolve''?
+\end{changemargin}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Nope}
+\begin{changemargin}{2cm}
+\begin{lstlisting}
+function main() {
+  try {
+    console.log(num);
+  } catch (err) {
+    console.log("nothing to see here");
+  }
+}
+
+main();
+\end{lstlisting}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{JavaScriptWorld Problems}
+\begin{changemargin}{2cm}
+When maintaining old code:
+\begin{itemize}
+\item is this variable defined?
+\item is this variable always defined?
+\item do I need to load a script to define that variable?
+\end{itemize}
+~\\[1em]
+Why is this the developer's problem?
+\end{changemargin}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Solution: Linters}
+\begin{changemargin}{0cm}
+
+\begin{lstlisting}
+plam@banach ~> cat foo.js
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+
+plam@banach ~> nodejs /usr/local/lib/node_modules/jshint/bin/jshint --config jshintrc foo.js
+foo.js: line 5, col 17, 'num' is not defined.
+
+1 error
+\end{lstlisting}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Invariant}
+
+\begin{center}
+``If code passes JSHint, all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Strengthening the Invariant}
+
+\begin{changemargin}{2cm}
+Add a pre-commit hook.
+\end{changemargin}
+
+\begin{center}
+``If code is checked-in and commit hook ran,\\ all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Better yet\ldots}
+
+\begin{changemargin}{2cm}
+Block deploys on test failures.
+\end{changemargin}
+
+\begin{center}
+``If code is deployed,\\ all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Even better yet\ldots}
+
+\begin{changemargin}{2cm}
+Hard to tell if code is deployed or not.\\
+Use git feature branches, merge when deployed.
+\end{changemargin}
+\begin{center}
+``If code is in master,\\ all top-level symbols resolve.''
+\end{center}
+\end{frame}
+
+\end{document}

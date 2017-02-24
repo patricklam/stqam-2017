@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usepackage{url}
+\usepackage{amssymb}
+\usetikzlibrary{arrows,automata,shapes}
+
+\lstset{basicstyle=\ttfamily \scriptsize,
+  basicstyle=\ttfamily,
+   columns=fullflexible,
+   breaklines=true,
+   numbers=left,
+   numberstyle=\scriptsize,
+   stepnumber=1,
+   mathescape=false,
+   tabsize=2,
+   showstringspaces=false
+}
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
+\newcommand{\squishlist}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{3pt}
+     \setlength{\topsep}{3pt}
+     \setlength{\partopsep}{0pt}
+     \setlength{\leftmargin}{1.5em}
+     \setlength{\labelwidth}{1em}
+     \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishlisttwo}{
+ \begin{list}{$\bullet$}
+  { \setlength{\itemsep}{0pt}
+     \setlength{\parsep}{0pt}
+    \setlength{\topsep}{0pt}
+    \setlength{\partopsep}{0pt}
+    \setlength{\leftmargin}{2em}
+    \setlength{\labelwidth}{1.5em}
+    \setlength{\labelsep}{0.5em} } }
+\newcommand{\squishend}{
+  \end{list}  }
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]''
+}
+
+
+\begin{document}
+
+\lecture{24 --- March 6, 2017}{Winter 2017}{Patrick Lam}{version 0}
+
+This material will come up later. I'm just putting it here right now, but I don't actually expect it to show up in Lecture 24. I want to talk more about engineering test suites first.
+
+\section*{Using Linters}
+We will also talk about linters in this lecture, based on Jamie Wong's blog post \url{jamie-wong.com/2015/02/02/linters-as-invariants/}.
+
+\paragraph{First there was C.}
+In statically-typed languages, like C,
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+int main() {
+  printf("%d\n", num);
+  return 0;
+}
+\end{lstlisting}
+the compiler saves you from yourself.
+The guaranteed invariant:
+\begin{center}
+``if code compiles, all symbols resolve.''
+\end{center}
+
+\paragraph{Less-nice languages.}
+OK, so you try to run that in JavaScript and it crashes right away.
+Invariant?
+\begin{center}
+ ``if code runs, all symbols resolve?''
+\end{center}
+
+But what about this:
+\begin{lstlisting}[language=JavaScript]
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+\end{lstlisting}
+Nope! The above invariant doesn't work.
+
+OK, what about this invariant:
+\begin{center}
+``if code runs without crashing, all symbols referenced in the code path executed resolve?''
+\end{center}
+
+Nope!
+\begin{lstlisting}[language=JavaScript]
+function main() {
+  try {
+    console.log(num);
+  } catch (err) {
+    console.log("nothing to see here");
+  }
+}
+
+main();
+\end{lstlisting}
+
+So, when you're working in JavaScript and maintaining old code, you always have to
+deduce:
+\squishlist
+\item is this variable defined?
+\item is this variable always defined?
+\item do I need to load a script to define that variable?
+\squishend
+We have computers. They're powerful. Why is this the developer's problem?!
+
+\paragraph{Solution: Linters.}
+\begin{lstlisting}[language=JavaScript]
+function main(x) {
+  if (x) {
+    console.log("Yay");
+  } else {
+    console.log(num);
+  }
+}
+
+main(true);
+\end{lstlisting}
+
+Now:
+\begin{verbatim}
+$ nodejs /usr/local/lib/node_modules/jshint/bin/jshint --config jshintrc foo.js
+foo.js: line 5, col 17, 'num' is not defined.
+
+1 error
+\end{verbatim}
+
+\vspace*{-1em}
+\paragraph{Invariant:}~\\
+
+\begin{center}
+``If code passes JSHint, all top-level symbols resolve.''
+\end{center}
+
+\paragraph{Strengthening the Invariant.} Can we do better? How about adding a pre-commit hook?
+\begin{center}
+``If code is checked-in and commit hook ran,\\ all top-level symbols resolve.''
+\end{center}
+Of course, sometimes the commit hook didn't run. Better yet:
+\squishlist
+\item Block deploys on test failures.
+\squishend
+
+\paragraph{Better invariant.}~\\[1em]
+\begin{center}
+``If code is deployed,\\ all top-level symbols resolve.''
+\end{center}
+
+\paragraph{Even better yet.}
+It is hard to tell whether code is deployed or not.
+Use git feature branches, merge when deployed.
+\begin{center}
+``If code is in master,\\ all top-level symbols resolve.''
+\end{center}
+\end{document}
