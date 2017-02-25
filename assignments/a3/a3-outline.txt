@@ -1,9 +1,15 @@
-* automated marking for A1Q1 (FindBugs plugin) (L26+)
+A3 is scheduled to be due March 24, which is L32; should finish lecturing about A3 material by L29
+or push the deadline later
+
+* automated marking for A1Q1 (FindBugs plugin) (L28 or 29)
+L28 is March 15
 
    - check that the stmt coverage is 100% (simple grep)
    - check that FormattedCommandAliasTest.java contains strictly more than one test
    - check that each method in the class contains a call to assertEquals with mockCommandSender.getLastMessage() as arg 1
 
-* automatic test suite generation (?)
-* mock objects (L20)
-* continuous integration (L23)
+* mock objects (L24)
+* continuous integration (L26)
+* test refactoring (L25)
+* another tools question? (L30?)
+

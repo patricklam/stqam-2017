@@ -47,26 +47,29 @@ midterm is after L20
 
 [reading week, A2 due at end of reading week]
 
-L21: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
- mock objects (L30, brief)
-
-L22: derek rayside
+L21: must-beliefs vs may-beliefs, coverity
+L22: more on must-beliefs vs may-beliefs, given by derek rayside
 L23: mike godfrey on clones
 
-L21, L22: test refactoring (old L30), refactoring code to be testable (old L36---RPCs, RESTful APIs, micro-services), badly designed tests (old L35)
-L23: continuous integration (Travis), flaky tests, hermetic tests
-plam away for L22, L23
+L24: JUnit (tutorial), unit testing/end-to-end/regression testing (old L34)
+ mock objects (L30, brief)
+
+L25: test refactoring (old L30), refactoring code to be testable (old L36---RPCs, RESTful APIs, micro-services), badly designed tests (old L35)
+L26 is Friday, March 10
+L26: continuous integration (Travis), flaky tests, hermetic tests
+L27: testing infrastructure/DevOps (see also P4P L35)
 http://nerds.airbnb.com/testing-at-airbnb/
 
-L24: TBA
-L25: testing infrastructure/DevOps (see also P4P L35)
 https://puppet.com/blog/hitchhikers-guide-to-testing-infrastructure-as-and-code
+https://martinfowler.com/articles/serverless.html
+https://medium.com/@hichaelmart/lambci-4c3e29d6599b
+https://about.gitlab.com/2015/02/03/7-reasons-why-you-should-be-using-ci/
 
-## Tools for V&V (L26-34)
+## Tools for V&V (L28-34)
 
 L26: static vs dynamic analysis
 
-L26 is March 10
+linters (currently stuck in L24)
 
 L27: static analysis I [fewer tools, more depth] [concurrency, old L10] [aComment, old L11]
 L28: static analysis II [type systems, immutability, compiler warnings, software model checking, JML tools. Coverity, FindBugs]
@@ -75,7 +78,7 @@ L30: dynamic analysis I [assertions, race detectors, valgrind]
 
 ECE FYDP on March 21
 
-L31: dynamic analysis II [bugfinding, must-belief vs may-belief]
+L31: dynamic analysis II [bugfinding, must-belief vs may-belief -> moved earlier because project]
 L32: dynamic analysis III
 
 A3 due on March 24 (L32)
