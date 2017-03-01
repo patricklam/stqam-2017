@@ -1,0 +1,194 @@
+\documentclass[10pt,hidelinks]{article}
+\usepackage[letterpaper, hmargin=0.75in, vmargin=0.75in]{geometry}
+\usepackage{graphicx}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{pgf}
+\usepackage{fontspec}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+\usepackage{syntax}
+\usepackage{hyphenat}
+\usepackage{enumitem}
+
+\parindent 0in
+\parskip 1.5ex
+
+
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true}
+
+
+\begin{document}
+
+\title{
+ECE453/CS447/SE465 \\
+Software Testing, Quality Assurance, and Maintenance\\
+Assignment/Lab 3, version 0}
+\author{Patrick Lam \\
+{Release Date: March 1, 2017} \\
+}
+\renewcommand{\today}{}
+\maketitle
+
+\begin{center}
+
+{\bf Due:  11:59 PM, Friday, March 31, 2017} \\
+{\bf Submit: via git.uwaterloo.ca }\\
+\end{center}
+
+\section*{Getting set up}
+We'll shift to using {\tt git.uwaterloo.ca}. Fork the repo at 
+{\tt https://git.uwaterloo.ca/stqam-2017/a3}. That will automatically create a copy in your own space
+on {\tt git.uwaterloo.ca}.
+
+Tools used (all required): PMD; C++; Java plus Maven; Valgrind (not
+strictly required but highly recommended).
+
+\section*{Submission summary}
+Here's what you need to submit in your fork of the repo. Be sure to commit
+and {\bf push} your changes back to {\tt ecgit}.
+\begin{enumerate}
+\item in directory {\tt q1}, your modified {\tt a1q1-automarker.xml} file and {\tt A1Q1Test.java};
+\item in directory {\tt q2}, file {\tt icalendarlib-memory.diff} as described in the question;
+\item in directory {\tt q3}, either file {\tt bugreports.txt} or {\tt bugreports.pdf};
+\item in directory {\tt shared/itext}, files {\tt pom.xml} and {\tt src/test/java/com/itextpdf/text/pdf/TaggedPdfText.java}.
+\item in directory {\tt q5}, either file {\tt codereview.txt} or {\tt codereview.pdf};
+\end{enumerate}
+Once again, you may choose to move the {\tt q?} directories into the {\tt shared} subdirectory if you want to access them in Vagrant. We'll mark submissions either in the original place or under {\tt shared}.
+
+ \begin{center}
+ \begin{tabular}{c|cc}
+ Question   &  TA in Charge \\ \hline
+1 & TBA \\
+2 & TBA \\
+3 & TBA \\
+4 & TBA \\
+5 & TBA
+ \end{tabular}
+ \end{center}
+
+\newpage
+\section*{Question 1 (10 points)}
+A few months ago, I wrote an automarker for your Assignment 1 Question 1 submissions.
+You will know enough to write this automarker yourself. We'll focus on just the
+technically challenging part.
+
+I've included PMD in the a3 skeleton and provided a template PMD {\tt
+  a1q1-automarker.xml} file. Use the following command in your VM to run your automarker:
+
+\begin{verbatim}
+~/shared/pmd/bin/run.sh pmd -f text -d ~/shared/a1q1/A1Q1Test.java -R ~/shared/q1/a1q1-automarker.xml
+\end{verbatim}
+
+Your task is to write a PMD rule that detects JUnit 4 test methods which have no calls to assert methods with arguments named {\tt mockCommandSender.getLastMessage}. JUnit 4 test methods have a {\tt Test} annotation. Calls to assert methods are Statements with a PrimaryPrefix descendant whose name starts with ``assert''. Submit your {\tt a1q1-automarker.xml} file in directory {\tt q1/}.
+
+In file {\tt q1/A1Q1Test.java}, write test methods that show
+that your query works properly; these tests should show that your query flags methods
+that it should and doesn't flag methods that it shouldn't.
+
+\section*{Question 2 (10 points)}
+
+Recall {\tt icalendarlib} from Assignment 2. I've made some changes to
+it to make it more Valgrind-friendly and again placed it in {\tt
+  shared/icalendarlib}. The code contains 4 memory errors. Using {\tt
+  valgrind}, or otherwise, find the errors and submit the diff for
+your changes in file {\tt q2/icalendarlib-memory.diff}. I believe that two of
+the errors are not reachable from the current {\tt main.cpp}
+file. You'll need to add more code to {\tt main.cpp} if you want to
+trigger them.
+
+\section*{Question 3 (10 points)} 
+In this question, you will critique and improve an existing bug report in Mozilla and write a bug report from scratch. 
+
+\begin{enumerate}[label=(\alph*)]
+
+\item Read Mozilla bug report 112785 (\url{https://bugzilla.mozilla.org/show_bug.cgi?id=112785}). What are some problems with the initial bug report (as seen in the ``Title" and the ``Description")? Identify four problems. How would you improve this bug report? (5 points)
+
+\item
+ The class {\tt q3/HashTable.java} is an implementation of a hash table using linear open addressing and division in Java.
+This program has a bug, because the {\texttt put} function will not update the element associated with the given key if an entry with the same key already exists. The hash table implementation should always update the element, even if the element's key already exists in the hash table. (See the comment in the {\texttt put} function). 
+
+Write a good bug report for this bug using the Bugzilla bug report format. (5 points)
+
+(Recommended exercise, not for marks: write a JUnit test that illustrates this bug.)
+
+ \end{enumerate}
+
+
+\section*{Question 4 (10 points)} 
+%Unit Testing Question (with Mock Objects).  
+
+In this question, add unit tests to the {\tt com.itextpdf.text.pdf.TaggedPdfTest} class for the
+{\tt add(final Element o)} method of the {\tt com.itextpdf.text.List} class from iText 
+(in {\tt shared/itext}).
+Use mock objects (with
+a mock object library of your choice; modify your {\tt pom.xml} accordingly).
+These tests must kill the following
+mutants:
+
+{\scriptsize
+\begin{lstlisting}
+  public boolean add(final Element o) {
+      if (o instanceof ListItem) {
+          ListItem item = (ListItem) o;
+          if (numbered || lettered) { // mutant 1: || -> &&
+              Chunk chunk = new Chunk(preSymbol, symbol.getFont());
+              chunk.setAttributes(symbol.getAttributes());
+              int index = first + list.size(); // mutant 2: index = 0, mutant 3: list -> item
+              if ( lettered )
+                  chunk.append(RomanAlphabetFactory.getString(index, lowercase));
+              else
+                  chunk.append(String.valueOf(index));
+              chunk.append(postSymbol);
+              item.setListSymbol(chunk);
+          }
+          else {
+              item.setListSymbol(symbol);
+          }
+          item.setIndentationLeft(symbolIndent, autoindent);
+          item.setIndentationRight(0);
+          return list.add(item); // mutant 4: list -> item
+      }
+      else if (o instanceof List) {
+          List nested = (List) o;
+          nested.setIndentationLeft(nested.getIndentationLeft() + symbolIndent);
+          first--;
+          return list.add(nested); // mutant 5: nested -> null
+      }
+      return false;
+  }
+\end{lstlisting}
+}
+
+\vspace*{1em}\noindent
+Here is an additional hint:
+
+\begin{enumerate}
+\item Be aware of the EasyMock factory method \verb+notNull()+ and class \verb+Capture<T>+.
+\end{enumerate}
+
+\section*{Question 5 (10 points)}
+In this question, you will perform code review. You may: 1) review
+your own code from the past; 2) review some code that a friend
+provides for you; or 3) review code that I suggest, namely the {\tt
+  com.itextpdf.text.pdf.SimpleBookmark} class from iText (which we saw
+in Question 4). The advantage of (1) and (2) is that you have the
+opportunity to get your questions about the code answered. The code
+may be in any language but should be between 500 and 1000 lines of
+code. You may also review a pull request of a similar magnitude.
+
+Your task is to apply the code review checklist at
+\url{https://blog.fogcreek.com/increase-defect-detection-with-our-code-review-checklist-example/}. In
+particular, pick 3 questions from that list and answer them for the
+code that you are reviewing. Explain your answer in a couple of
+sentences, supporting it with examples from the code that you're
+reviewing. Put your solution in either file {\tt q5/codereview.txt}
+or {\tt q5/codereview.pdf}. 
+
+
+
+%* continuous integration (L26) -> can't actually think of a question
+
+\end{document}
