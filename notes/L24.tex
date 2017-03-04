@@ -5,6 +5,8 @@
 \usepackage{url}
 \usepackage{amssymb}
 \usetikzlibrary{arrows,automata,shapes}
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
 
 \lstset{basicstyle=\ttfamily \scriptsize,
   basicstyle=\ttfamily,
@@ -93,121 +95,97 @@
 
 \lecture{24 --- March 6, 2017}{Winter 2017}{Patrick Lam}{version 0}
 
-This material will come up later. I'm just putting it here right now, but I don't actually expect it to show up in Lecture 24. I want to talk more about engineering test suites first.
+\section*{Regression Testing}
 
-\section*{Using Linters}
-We will also talk about linters in this lecture, based on Jamie Wong's blog post \url{jamie-wong.com/2015/02/02/linters-as-invariants/}.
+Regression testing refers to any software testing that uncovers errors by retesting the modified program (Wikipedia). This form of testing often refers to comprehensive sets of test cases to detect regressions:
+\begin{itemize}
 
-\paragraph{First there was C.}
-In statically-typed languages, like C,
-\begin{lstlisting}[language=C]
-#include <stdio.h>
+\item of bug fixes that a developer has proposed.
 
-int main() {
-  printf("%d\n", num);
-  return 0;
-}
-\end{lstlisting}
-the compiler saves you from yourself.
-The guaranteed invariant:
-\begin{center}
-``if code compiles, all symbols resolve.''
-\end{center}
+\item of related and unrelated other features that have been added.
 
-\paragraph{Less-nice languages.}
-OK, so you try to run that in JavaScript and it crashes right away.
-Invariant?
-\begin{center}
- ``if code runs, all symbols resolve?''
-\end{center}
+\end{itemize}
 
-But what about this:
-\begin{lstlisting}[language=JavaScript]
-function main(x) {
-  if (x) {
-    console.log("Yay");
-  } else {
-    console.log(num);
-  }
-}
+Regression testing usually refers to system level (integration level) testing that runs the entire process.
 
-main(true);
-\end{lstlisting}
-Nope! The above invariant doesn't work.
+\subsection*{Attributes of Regression Tests}
 
-OK, what about this invariant:
-\begin{center}
-``if code runs without crashing, all symbols referenced in the code path executed resolve?''
-\end{center}
+Regression tests usually have the following attributes:
 
-Nope!
-\begin{lstlisting}[language=JavaScript]
-function main() {
-  try {
-    console.log(num);
-  } catch (err) {
-    console.log("nothing to see here");
-  }
-}
+\begin{itemize}
 
-main();
-\end{lstlisting}
+\item \textbf{Automated}: no real reason to have manual regression tests.
 
-So, when you're working in JavaScript and maintaining old code, you always have to
-deduce:
-\squishlist
-\item is this variable defined?
-\item is this variable always defined?
-\item do I need to load a script to define that variable?
-\squishend
-We have computers. They're powerful. Why is this the developer's problem?!
+\item \textbf{Appropriately Sized}: too small and bugs will be missed. Too large and they will take a long time to run. Optimally, we want to run tests continuously.
 
-\paragraph{Solution: Linters.}
-\begin{lstlisting}[language=JavaScript]
-function main(x) {
-  if (x) {
-    console.log("Yay");
-  } else {
-    console.log(num);
-  }
-}
+\item \textbf{Up-to-date}: ensure that tests are valid for the version of program being tested.
 
-main(true);
-\end{lstlisting}
+\end{itemize}
 
-Now:
-\begin{verbatim}
-$ nodejs /usr/local/lib/node_modules/jshint/bin/jshint --config jshintrc foo.js
-foo.js: line 5, col 17, 'num' is not defined.
+\subsection*{Automating Regression Tests}
 
-1 error
-\end{verbatim}
+Regression tests often have a low yield in terms of finding bugs (and are boring to run). Automation is key.
 
-\vspace*{-1em}
-\paragraph{Invariant:}~\\
+\textbf{Input}
 
-\begin{center}
-``If code passes JSHint, all top-level symbols resolve.''
-\end{center}
+If the input is from a file, regression tests are easy to run (but should still be automatically triggered on a regular interval). There may still be a problem with validating output. We can also create special mocks that can take input from a file or other sources (e.g. scripting engines). 
 
-\paragraph{Strengthening the Invariant.} Can we do better? How about adding a pre-commit hook?
-\begin{center}
-``If code is checked-in and commit hook ran,\\ all top-level symbols resolve.''
-\end{center}
-Of course, sometimes the commit hook didn't run. Better yet:
-\squishlist
-\item Block deploys on test failures.
-\squishend
+For UIs, the standard approach is to capture and replay events. This approach can be fragile! For example, tests may fail based on window placement or whitespace. For web applications, there is capture and replay for HTTP using Selenium. Mozilla has a project named Marionette\footnote{\url{https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette}} that is used to test Firefox and Thunderbird; it is like Selenium but also works on Chrome elements. 
 
-\paragraph{Better invariant.}~\\[1em]
-\begin{center}
-``If code is deployed,\\ all top-level symbols resolve.''
-\end{center}
+\textbf{Output}
 
-\paragraph{Even better yet.}
-It is hard to tell whether code is deployed or not.
-Use git feature branches, merge when deployed.
-\begin{center}
-``If code is in master,\\ all top-level symbols resolve.''
-\end{center}
+Verifying output can be hard!! Problems can arise from issues such as resolution, whitespace, window placement etc. 
+
+\textbf{Mozilla Case Study\footnote{\url{http://robert.ocallahan.org/2005/03/visual-regression-tests_04.html}}}
+
+The case study presents an approach to testing Gecko based applications. Gecko is the layout engine for Mozilla applications like Firefox and Thunderbird. 
+
+In the past, a frame tree with coordinates for all UI elements was created and manual testers performed tests. Not optimal! The new approach was to capture screenshots after test cases and compare them with the expected screenshot. There were a few problems with the approach due to nondeterminism: 
+
+\begin{itemize}
+\item Animated images: no way to ensure tests would function with animated images.
+\item Font Hinting: the same character would appear slightly differently after each run of the application.
+\item Other bugs: resolution problems, minor changes in layout etc.
+\end{itemize}
+
+The problem was ``really hellish'' and the partial solution was to enable logging in the application. The logs would essentially be compared with expected logs. This became very ugly given 1300 or so test cases; distributing across different computers helped.
+
+\subsection*{Some Notes}
+
+\begin{itemize}
+
+\item Sometimes it is a good idea to have 1 test case per bug fix. This can get unwieldy over time if redundant test cases are not removed.
+
+\item Test suites can be evaluated using coverage criteria (e.g. how many use cases were covered) or manually in order to get rid of redundant tests.
+
+\item There is some interest in test case prioritization but little practical application since it is unclear how to implement it.
+
+\item Expect low yields in terms of finding bugs so automation is key!
+
+\item Ensure regression tests are up-to-date. This can be a pain but is necessary since when software changes, test suits break or become incomplete. When a new software version comes out, try the old suite. 
+
+\begin{itemize}
+\item If there are no failures, new tests may need to be added to test new functionality.
+
+\item If there are some failures, determine if software or test is broken. Tests can depend on inessential features of the output (e.g. order or text etc.).
+\end{itemize}
+
+\item Try to get rid of irrelevant tests over time. For example, if you have a bunch of tests that are related to the same bug, keep only 1 test for the bug. 
+\end{itemize}
+
+\section*{Industrial Best Practices}
+
+\begin{itemize}
+
+\item \textbf{Unit Tests:} Each class has an associated unit test. If you change a class, you must also modify the unit test.
+
+\item \textbf{Code Reviews:} Each branch in the central version control system has owners. In order to commit code to that branch, you must have your code reviewed and approved by one of the owners. This ensures code quality.
+
+\item \textbf{Continuous Builds:} There is often a machine that continuously checks out and tests the latest code. All unit and regression tests are run and the status is made public to the team. The status contains information about the whether the code was built successfully, whether all unit and regression tests passed, and a list of the last few commits that were made to the branch. This ensures developers try to submit good code since if you break something, everyone knows about it :)
+
+\item \textbf{One-button Deploy:} If all tests have passed, one should be able to deploy to production
+with one command.
+
+\item \textbf{Back Button:} Systems should be designed so that it's possible to roll back changes.
+\end{itemize}
 \end{document}
