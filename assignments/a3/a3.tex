@@ -25,7 +25,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 3, version 0.1}
+Assignment/Lab 3, version 0.2}
 \author{Patrick Lam \\
 {Release Date: March 1, 2017} \\
 }
@@ -37,6 +37,8 @@ Assignment/Lab 3, version 0.1}
 {\bf Due:  11:59 PM, Friday, March 31, 2017} \\
 {\bf Submit: via git.uwaterloo.ca }\\
 \end{center}
+
+NOTE: edited mutant 4 in Q2. Thanks for your understanding.
 
 \section*{Getting set up}
 We'll shift to using {\tt git.uwaterloo.ca}. Fork the repo at 
@@ -136,7 +138,7 @@ mutants:
           if (numbered || lettered) { // mutant 1: || -> &&
               Chunk chunk = new Chunk(preSymbol, symbol.getFont());
               chunk.setAttributes(symbol.getAttributes());
-              int index = first + list.size(); // mutant 2: index = 0, mutant 3: list -> item
+              int index = first + list.size(); // mutant 2: index = first (NOTE EDIT), mutant 3: list -> item
               if ( lettered )
                   chunk.append(RomanAlphabetFactory.getString(index, lowercase));
               else
