@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<ruleset name="a1q1">
+  <description>
+The Design Ruleset automatically marks SE465/ECE453/CS447 A1Q1.
+  </description>
+  <rule name="Rule"
+        message="Found test case without assertion or without call to mockCommandSender.getLastMessage()."
+        language="java"
+        class="net.sourceforge.pmd.lang.rule.XPathRule">
+    <description>
+Test cases must contain an assertion with a call to mockCommandSender.getLastMessage().
+    </description>
+    <properties>
+    <property name="xpath">
+        <value>
+        <![CDATA[
+*** put your XPath here ***
+        ]]>
+        </value>
+    </property>
+    </properties>
+    <example>
+<![CDATA[
+  @Test
+  void badTest() {
+    // no assertion that contains a call to mockCommandSender.getLastMessage()
+  }
+]]>
+    </example>
+  </rule>
+</ruleset>

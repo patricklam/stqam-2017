@@ -11,5 +11,5 @@ L28 is March 15
 * mock objects (L24)
 * continuous integration (L26)
 * test refactoring (L25)
-* another tools question? (L30?)
+* valgrind-clean icalendarlib (L30)
 
