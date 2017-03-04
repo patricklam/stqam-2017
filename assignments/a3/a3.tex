@@ -25,7 +25,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 3, version 0}
+Assignment/Lab 3, version 0.1}
 \author{Patrick Lam \\
 {Release Date: March 1, 2017} \\
 }
@@ -79,7 +79,7 @@ I've included PMD in the a3 skeleton and provided a template PMD {\tt
   a1q1-automarker.xml} file. Use the following command in your VM to run your automarker:
 
 \begin{verbatim}
-~/shared/pmd/bin/run.sh pmd -f text -d ~/shared/a1q1/A1Q1Test.java -R ~/shared/q1/a1q1-automarker.xml
+~/shared/pmd/bin/run.sh pmd -f text -d ~/shared/q1/A1Q1Test.java -R ~/shared/q1/a1q1-automarker.xml
 \end{verbatim}
 
 Your task is to write a PMD rule that detects JUnit 4 test methods which have no calls to assert methods with arguments named {\tt mockCommandSender.getLastMessage}. JUnit 4 test methods have a {\tt Test} annotation. Calls to assert methods are Statements with a PrimaryPrefix descendant whose name starts with ``assert''. Submit your {\tt a1q1-automarker.xml} file in directory {\tt q1/}.
