@@ -6,6 +6,8 @@
 \usepackage{listings}
 \usepackage{pgf}
 \usepackage{fontspec}
+\defaultfontfeatures{Mapping=tex-text}
+\setmainfont{Latin Modern Roman}
 \setmonofont{Cousine}[Scale=MatchLowercase]
 \usepackage{syntax}
 \usepackage{hyphenat}
@@ -25,7 +27,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 3, version 0.3}
+Assignment/Lab 3, version 0.4}
 \author{Patrick Lam \\
 {Release Date: March 1, 2017} \\
 }
@@ -43,7 +45,7 @@ NOTE: edited mutant 4 in Q2. Thanks for your understanding.
 \section*{Getting set up}
 We'll shift to using {\tt git.uwaterloo.ca}. Fork the repo at 
 {\tt https://git.uwaterloo.ca/stqam-2017/a3}. That will automatically create a copy in your own space
-on {\tt git.uwaterloo.ca}. {\bf You must make your a3 repo private after you fork it.} Click on settings, Edit Project, set Visibility Level to ``Private'', and Save Changes. Then add group 'stqam-2017' as a group with access to your project.
+on {\tt git.uwaterloo.ca}. {\bf You must make your a3 repo private after you fork it.} Navigate to your project, click on settings, Edit Project, set Visibility Level to ``Private'', and Save Changes. Then add user `stqam' with at least `reporter' access to your project.
 
 Tools used (all required): PMD; C++; Java plus Maven; Valgrind (not
 strictly required but highly recommended).
