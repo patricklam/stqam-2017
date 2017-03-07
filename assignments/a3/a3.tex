@@ -27,7 +27,7 @@ basicstyle=\ttfamily\scriptsize,commentstyle=\scriptsize\itshape,showstringspace
 \title{
 ECE453/CS447/SE465 \\
 Software Testing, Quality Assurance, and Maintenance\\
-Assignment/Lab 3, version 0.4}
+Assignment/Lab 3, version 1.0}
 \author{Patrick Lam \\
 {Release Date: March 1, 2017} \\
 }
@@ -127,9 +127,9 @@ Write a good bug report for this bug using the Bugzilla bug report format. (5 po
 In this question, add unit tests to the {\tt com.itextpdf.text.pdf.TaggedPdfTest} class for the
 {\tt add(final Element o)} method of the {\tt com.itextpdf.text.List} class from iText 
 (in {\tt shared/itext}).
-Use mock objects (with
-a mock object library of your choice; modify your {\tt pom.xml} accordingly).
-These tests must kill the following
+Your solution must use mock objects (with
+a mock object library of your choice; modify your {\tt pom.xml} accordingly). 
+Your tests must kill the following
 mutants:
 
 {\scriptsize
@@ -165,6 +165,7 @@ mutants:
   }
 \end{lstlisting}
 }
+I'm aware that the unit tests that come with iText also kill the mutants. But they don't use mock objects. As I wrote above, your solutions are required to use mock objects.
 
 \vspace*{1em}\noindent
 Here is an additional hint:
