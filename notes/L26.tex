@@ -1,0 +1,274 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\setmainfont{Latin Modern Roman}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage[listings]{tcolorbox}
+\newtcbinputlisting{\codelisting}[3][]{
+    extrude left by=1em,
+    extrude right by=2em,
+    listing file={#3},
+    fonttitle=\bfseries,
+    listing options={basicstyle=\ttfamily\footnotesize,numbers=left,language=Java,#1},
+    listing only,
+    hbox,
+}
+
+\begin{document}
+
+\lecture{26 --- March 10, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+We'll continue discussing how to engineer your test suites today. 
+In particular, we'll see more details on how to make behaviour verification
+actually happen (using mock objects); we'll discuss the bane of flaky tests;
+and we'll talk about continuous integration.
+
+\section*{Test Doubles}
+Mock objects are a particular kind of test double. We need test doubles
+because objects collaborate with other objects, but we only want to test
+one object at a time.
+Meszaros categorizes test doubles as follows:
+\begin{itemize}[noitemsep]
+    \item dummy objects: these are not actually test doubles; they don't do anything, but just take up space in parameter lists. Are like {\tt null}, but get past nullness checks in code.
+    \item fake objects: have actual behaviour (which is correct), but somehow unsuitable for use in production; typical example is an in-memory database.
+    \item stubs: produce canned answers in response to interactions from the class under test.
+    \item mocks: like stubs, also produce canned answers. Difference: mock objects also check that the class under test makes the appropriate calls.
+    \item spies: usually wraps the real object (instead of the mock, which stubs it), and records interactions for later verification.
+\end{itemize}
+Shorter reference about test doubles: \url{martinfowler.com/articles/mocksArentStubs.html}
+
+\section*{Mock Objects}
+Before we talk about mock objects, let's look at a stub. Imagine that you have a service that
+sends out emails. You don't actually want to send out emails while you're testing. So here's
+a class that pretends to send out emails.
+\begin{lstlisting}
+public class MailServiceStub implements MailService {
+  private List<Message> messages = new ArrayList<Message>();
+  public void send (Message msg) {
+    messages.add(msg);
+  }
+  public int numberSent() {
+    return messages.size();
+  }
+}     
+\end{lstlisting}
+This stub permits \emph{state verification}, as seen in the following assert in a test:
+\begin{lstlisting}
+  assertEquals(1, mailer.numberSent());
+\end{lstlisting}
+This is state verification because it's checking the contents of
+memory (which should reflect interactions that have happened in the
+past). One could also check the recipients, contents of messages, etc.
+
+\paragraph{jMock example.} 
+Instead of state verification, we can also do behaviour verification. This is
+jMock syntax.
+\begin{lstlisting}
+class OrderInteractionTester... {
+  public void testOrderSendsMailIfUnfilled() {
+    Order order = new Order(TALISKER, 51);
+    Mock warehouse = mock(Warehouse.class);
+    Mock mailer = mock(MailService.class);
+    order.setMailer((MailService) mailer.proxy());
+
+    mailer.expects(once()).method("send");
+    warehouse.expects(once()).method("hasInventory")
+      .withAnyArguments()
+      .will(returnValue(false));
+
+    order.fill((Warehouse) warehouse.proxy());
+  }
+}
+\end{lstlisting}
+The calls to {\tt mock()} create mock objects which have the
+appropriate type.  If you are using the objects as simple dummy
+objects, calling {\tt mock()} and {\tt proxy()} is enough. Note that
+we have a real {\tt Order} object but we're giving it the fake proxy
+objects, as created by the {\tt Mock}'s {\tt proxy()} methods.
+
+We also specify the expected behaviour of the {\tt mailer} and the
+{\tt warehouse}. The test case is saying that the mailer ought to have
+{\tt send()} called on it once, and that the warehouse ought to have
+{\tt hasInventory()} called; that method should return {\tt false()}.
+
+\paragraph{EasyMock example.} Different mock object libraries have different syntax. Here's 
+another example, this time for EasyMock.
+
+\begin{lstlisting}
+@RunWith(EasyMockRunner.class)
+public class ExampleTest {
+
+  @TestSubject
+  private ClassUnderTest classUnderTest = new ClassUnderTest();
+
+  @Mock // creates a mock object
+  private Collaborator mock;
+
+  @Test
+  public void testRemoveNonExistingDocument() {
+    replay(mock);
+    classUnderTest.removeDocument("Does not exist");
+  }
+}      
+\end{lstlisting}
+Here we are testing the {\tt ClassUnderTest} and creating a mock object
+of {\tt Collaborator} type. EasyMock 2.3 reads the {\tt @Mock} annotation
+and automatically fills in a mock object of the appropriate type.
+In our test case, we call {\tt replay(mock)} to indicate that we are no
+longer recording expectations, but are instead starting the test case itself.
+In the above code, there are currently no expectations.
+
+Let's add some expectations.
+\begin{lstlisting}
+@Test
+public void testAddDocument() {
+  // ** recording phase **
+  // expect document addition
+  mock.documentAdded("Document");
+  // expect to be asked to vote for document removal, and vote for it
+  expect(mock.voteForRemoval("Document"))
+             .andReturn((byte) 42);
+  // expect document removal
+  mock.documentRemoved("Document");
+  replay(mock);
+  // ** replaying phase ** we expect the recorded actions to happen
+  classUnderTest.addDocument("New Document", new byte[0]);
+  // check that the behaviour actually happened:
+  verify(mock);
+}
+\end{lstlisting}
+Here we record the fact that the mock should be called with {\tt documentAdded}
+and a parameter "New Document". We also record that the mock's 
+{\tt voteForRemoval} method should be called, and when that happens, it should return
+value 42.
+Finally, we add a call {\tt verify()} to let EasyMock
+know that we're done and that it can go ahead and check that the expected behaviour actually happened.
+
+\section*{Flaky Tests}
+The second test engineering topic I want to talk about today is flaky tests. 
+Flaky tests are those that sometimes fail (nondeterministically).
+Flakiness is not something you want in your test cases. 
+(I have heard one defense of a flaky test: it lets you know that 
+the system has the potential to actually work.) 
+In general, flaky tests don't play well with the expectation that
+your test suite passes 100\%.
+
+Reference:\\
+Qingzhou Luo, Farah Hariri, Lamyaa Eloussi, Darko Marinov. ``An Empirical Analysis of Flaky Tests''. In Proceedings of Foundations of Software Engineering '14.
+
+\paragraph{Dealing with flaky tests.} Companies with large test suites have found mitigations
+for the flaky test suite problem. One can label known-flaky tests as flaky and automatically
+re-run them to see if they eventually pass. One can also ignore or remove flaky tests.
+But this is unsatisfactory: it takes a long time to re-run failing tests.
+
+\paragraph{Causes of flakiness.} Luo et al studied 201 fixes to flaky tests in open-source
+projects. They found that the three most common causes of fixable flaky tests were:
+\begin{enumerate}[noitemsep]
+    \item improper waits for asynchronous responses;
+    \item concurrency; and
+    \item test order dependency.
+\end{enumerate}
+
+The problem that caused flakiness for asynchronous waits was that there was typically a
+{\tt sleep()} call which didn't wait long enough for the action (perhaps a network call)
+to finish. The best practice is to use some sort of {\tt wait()} call to wait for the result
+instead of hardcoding a sleep time.
+
+Concurrency problems were what one might expect. The problem could either be in the system under
+test or in the test itself. Problems included data races, atomicity violations, and deadlocks;
+the solutions were the proper use of concurrency primitives (e.g. locks) as seen in your 
+Operating Systems course.
+
+Test order dependency problems arose when some tests expected other tests to have already
+executed (and left a side effect like a file in the filesystem). They came up especially 
+in the transition from Java 6 to Java 7 because that transition changed the (not-guaranteed)
+test execution order. The solution is to remove the dependency.
+
+\section*{Continuous Integration}
+This is not a complicated concept. Literally, continuous integration requires you to use
+a single shared master branch with your development teams. That is integration because you're
+merging your changes into master, and continuous because you're doing it all the time.
+
+\paragraph{Why CI Is Awesome.} Before CI, people could be stuck integrating changes for months 
+(or longer!) after each team finishes developing their change. This is not good. Instead,
+your software always stays in a working state.
+
+\paragraph{Necessary CI Practices.} You can't just do CI, though. It's not new, but there
+was a time before CI. You need \emph{continuous builds} and \emph{test automation} to make CI work.
+You can then use CI to do Continous Deployment. Here's how CI works.
+
+    \begin{enumerate}[noitemsep]
+    \item You clone the repo (which works).
+    \item You make your changes.
+    \item You commit and push your changes (often!)
+    \item A machine pulls the changes, compiles them, and runs automated tests.
+      \item Everyone knows whether your changes passed tests or not.
+    \end{enumerate}
+
+Continuous Deployment is a minor variant to CI where the productiton machines also pull changes
+as soon as the tests pass.
+
+\paragraph{Key Details.} Note that CI also requires these practices:
+
+    \begin{itemize}[noitemsep]
+    \item Fix broken builds immediately!
+    \item Keep the build fast (minutes):
+parallelize it \& tier your tests.
+    \item Test in a prod-like environment.
+    \end{itemize}
+
+
+\paragraph{References about Continuous Integration.}~\\
+    Bullet points from Gitlab: 
+    \url{about.gitlab.com/2015/02/03/7-reasons-why-you-should-be-using-ci/}\\[1em]
+    Mid-length article from Atlassian: \\
+\url{www.atlassian.com/agile/continuous-integration}\\[1em]
+    Longer article by Martin Fowler: \\
+    \url{martinfowler.com/articles/continuousIntegration.html}\\[2em]
+    Serverless CI: \\
+    \url{medium.com/@hichaelmart/lambci-4c3e29d6599b}
+
+\end{document}

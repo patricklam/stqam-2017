@@ -127,7 +127,7 @@ John Tenniel's original (1865) illustration for Lewis Carroll's ``Alice in Wonde
     \item dummy objects (don't do anything);
     \item fake objects (do something, but no good in prod, \\ \hspace*{3cm} e.g. in-memory database);
     \item stubs (canned answers)
-    \item spies (stubs that record interactions);
+    \item spies (stubs/proxies that record interactions);
       \item mocks (objects with expectations)
     \end{itemize}
     Reference: \\ \url{martinfowler.com/articles/mocksArentStubs.html}
@@ -324,7 +324,7 @@ public void testVoteForRemoval() {
 \end{frame}
 
 \begin{frame}
-  \frametitle{Concurrency}
+  \frametitle{Test Order Dependency}
   \Large
   \begin{changemargin}{1cm}
     Problem: test X expects test Y to have completed.\\
