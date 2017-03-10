@@ -59,7 +59,7 @@
 
 \begin{document}
 
-\lecture{26 --- March 10, 2017}{Winter 2017}{Patrick Lam}{version 1}
+\lecture{26 --- March 10, 2017}{Winter 2017}{Patrick Lam}{version 2}
 
 We'll continue discussing how to engineer your test suites today. 
 In particular, we'll see more details on how to make behaviour verification
@@ -237,7 +237,7 @@ merging your changes into master, and continuous because you're doing it all the
 your software always stays in a working state.
 
 \paragraph{Necessary CI Practices.} You can't just do CI, though. It's not new, but there
-was a time before CI. You need \emph{continuous builds} and \emph{test automation} to make CI work.
+was a time before CI, because the infrastructure didn't exist yet. You need \emph{continuous builds} and \emph{test automation} to make CI work (and, of course, a source control repository).
 You can then use CI to do Continous Deployment. Here's how CI works.
 
     \begin{enumerate}[noitemsep]
@@ -248,16 +248,15 @@ You can then use CI to do Continous Deployment. Here's how CI works.
       \item Everyone knows whether your changes passed tests or not.
     \end{enumerate}
 
-Continuous Deployment is a minor variant to CI where the productiton machines also pull changes
-as soon as the tests pass.
+Continuous Deployment is a minor variant to CI where the production machines also pull changes
+as soon as the tests pass, and deploy them.
 
-\paragraph{Key Details.} Note that CI also requires these practices:
+\paragraph{Key Details.} To make Continuous Integration work, you'll probably have to follow these practices as well:
 
     \begin{itemize}[noitemsep]
-    \item Fix broken builds immediately!
-    \item Keep the build fast (minutes):
-parallelize it \& tier your tests.
-    \item Test in a prod-like environment.
+    \item Fix broken builds immediately! (Commits shouldn't even be accepted if they don't compile; test cases should start immediately and fixing them is a high priority task).
+    \item Keep the build fast (minutes): parallelize the build and tests. Deploy tiered tests: fast tests run first, then slower, more detailed tests.
+    \item Test in a production-like environment. Virtual machines are helpful here.
     \end{itemize}
 
 
