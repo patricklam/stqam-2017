@@ -1,0 +1,141 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\setmainfont{Latin Modern Roman}
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage[listings]{tcolorbox}
+\newtcbinputlisting{\codelisting}[3][]{
+    extrude left by=1em,
+    extrude right by=2em,
+    listing file={#3},
+    fonttitle=\bfseries,
+    listing options={basicstyle=\ttfamily\footnotesize,numbers=left,language=Java,#1},
+    listing only,
+    hbox,
+}
+
+\begin{document}
+
+\lecture{27 --- March 13, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\section*{More on Flaky Tests}
+
+Google also has a blog post about their experience with flaky tests. It provides a different
+perspective on flaky tests.
+
+\url{https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html}
+
+Here are some useful facts from that post:
+
+\begin{itemize}[noitemsep]
+\item Rate of flakiness: 1.5\% of all test runs. Over time, their
+  flaky test insertion rate is about the same as the flaky test
+  removal rate. The number of \emph{tests} which are occasionally
+  flaky is 16\%.
+\item Code can only be submitted after it passes tests. There are also
+  pre-release test suites which must succeed before the project can be
+  released. This is presumably after correcting for flakiness.
+\item The vast majority (84\%) of post-submit test failures in continuous
+  integration are associated with flaky tests. 
+\item The flaky test rate means that if you have 1000 pre-release tests,
+  you should expect 15 failing tests which require manual investigation.
+  If you ignore them, you might well be missing an actual problem.
+\item Mitigation: in addition to what I mentioned last time (automatic
+  re-running), Google also allows re-running only flaky tests.  Known
+  flaky tests get automatically re-run 3 times before reporting a
+  fail. This slows down notification of test failures, too. Also, tests
+  that are seen to be flaky are automatically quarantined (not run every time;
+  bug reported). 
+\end{itemize}
+
+\section*{Case Study: Mocks/Stubs}
+
+Next, we'll summarize another Google case study, this time about mocks/stubs.
+
+\url{https://testing.googleblog.com/2016/11/what-test-engineers-do-at-google.html}
+
+This blog entry describes the work of a Google Test Engineer in improving test infrastructure.
+
+\paragraph{Situation.} Legacy system. Flaky tests: large and brittle. End-to-end tests
+were difficult to introduce fakes into. System used many external dependencies.
+
+\paragraph{First false start.} Splitting the end-to-end tests. Didn't work: would have needed
+refactoring for entire legacy system, not just the part the author's team was working on.
+
+\paragraph{Second false start.} Mock services that were not actually required. Not viable: 
+dependencies changed often. Imposed test maintenance cost.
+
+\paragraph{Actual solution.} Replace the client code (which calls depended-on services)
+by unit tests of calls to RPC stubs. Stub implemented with mock objects.
+Then, in another test, send the data to the actual service (i.e. test the tests).
+
+The benefits are much faster tests (10$\times$ speedup: from 30 minutes to 3 minutes)
+which are not at all flaky and which can run on developer machines.
+
+\section*{Airbnb Testing Infrastructure}
+
+Let's change it up here and talk about Airbnb instead.
+
+\url{http://nerds.airbnb.com/testing-at-airbnb/}
+
+This describes how the author worked with colleagues to introduce a
+(developer-based) testing culture at Airbnb.
+
+\paragraph{Running tests locally.} As I mentioned earlier, running tests
+in prod-like environments helps a lot. Airbnb did so using Vagrant boxes 
+(``ready to run tests out of the box.'') Airbnb runs on Ruby on Rails and 
+they use Zeus to allow developers to start up the Rails environment super
+quickly.
+
+\paragraph{Continuous Integration.} They also use Solano for Continuous
+Integration (as described in the L26 notes). Tests run at Airbnb (not
+in the public cloud), in parallel for improved throughput.
+
+Furthermore, their Github displays the build/test status of every pull
+request, and presumably developers only merge pull requests that pass
+the tests.
+
+\end{document}
