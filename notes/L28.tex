@@ -1,0 +1,197 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\setmainfont{Latin Modern Roman}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage[listings]{tcolorbox}
+\newtcbinputlisting{\codelisting}[3][]{
+    extrude left by=1em,
+    extrude right by=2em,
+    listing file={#3},
+    fonttitle=\bfseries,
+    listing options={basicstyle=\ttfamily\footnotesize,numbers=left,language=Java,#1},
+    listing only,
+    hbox,
+}
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+
+\begin{document}
+
+\lecture{28 --- March 15, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\section*{Code Review}
+
+Code review is a powerful tool for improving code quality. Today's lecture is
+based on the following references:
+
+\begin{itemize}
+\item course reading on code review (main source):
+
+  \url{http://web.mit.edu/6.031/www/sp17/classes/04-code-review/}
+\item how code review works in an MIT course on software construction:
+
+  \url{http://web.mit.edu/6.031/www/sp17/general/code-review.html}
+\item Fog Creek code review checklist:
+
+  {\scriptsize \url{https://blog.fogcreek.com/increase-defect-detection-with-our-code-review-checklist-example/} }
+\end{itemize}
+
+Our course includes code review as part of Assignment 3. The MIT
+offering is more comprehensive and requires students to respond to
+code reviews as well.
+
+Code review is a communication-intensive activity. A reviewer needs to 1) read
+someone else's code and 2) communicate suggestions to the author of that code.
+We sometimes think that communicating with the computer is our primary goal
+when programming, but communicating with other people is at least as important
+over the long run.
+
+\paragraph{Purpose of code review.} The communication inherent in code review
+aims to improve both the code itself as well as the author of the
+code.  Good code review can give timely information to developers
+about the context in which their code operates,
+particularly the project and best-practices uses of the language.
+
+We'll continue with a list of items that you are inspecting when you do a code review.
+
+\paragraph{Formatting.} Consistency in formatting helps avoid preventable
+errors. Positioning of \{ \}s isn't something that necessarily has one
+right answer. Spaces are probably better than tabs. But the most important thing is
+to be self-consistent with yourself and within your project.
+
+\newpage
+\section*{Code smell example 1.}
+
+The following code has a number of bad smells:
+\begin{lstlisting}
+public static int dayOfYear(int month, int dayOfMonth, int year) {
+    if (month == 2) {
+        dayOfMonth += 31;
+    } else if (month == 3) {
+        dayOfMonth += 59;
+    } else if (month == 4) {
+        dayOfMonth += 90;
+    } else if (month == 5) {
+        dayOfMonth += 31 + 28 + 31 + 30;
+    } else if (month == 6) {
+        dayOfMonth += 31 + 28 + 31 + 30 + 31;
+    } else if (month == 7) {
+        dayOfMonth += 31 + 28 + 31 + 30 + 31 + 30;
+    }
+    // ... through month == 12
+    return dayOfMonth;
+}
+\end{lstlisting}
+
+Let's go through some of the bad smells.
+
+\begin{itemize}
+\item {\bf Don't Repeat Yourself}. A few weeks ago in Lecture 23, we talked about code cloning
+  and how it's not always bad. Sometimes it is bad, as in the code above. The usual reason for it
+  being bad is that fixes in one place may remain unfixed in the other place. (Recall: it wasn't
+  always bad when used for forking and templating). For instance, if February actually had 30
+  days, you'd need to change a lot of code.
+\item {\bf Fail Fast.} In the language of 6.031, we mean that a defect should be caught
+  closest to when it's written. Static checks, as performed in compilers, catch defects
+  earlier than dynamic checks, which catch defects earlier than letting wrong values percolate
+  in the program state. In this particular example, there are no checks ensuring that a
+  user had not permuted {\tt month} and {\tt dayOfMonth}.
+\item {\bf Avoid Magic Numbers.} The above code is full of magic numbers. Particularly
+  magical numbers include the {\tt 59} and {\tt 90} examples, as well as the month lengths
+  and the month numbers. Instead, use names like {\tt FEBRUARY} etc. Enums are a good way
+  to encode months, and days-of-months should be in an array. The {\tt 59} should really be
+  {\tt 31 + 28}, or better yet, \verb!MONTH_LENGTH[JANUARY] + MONTH_LENGTH[FEBRUARY]!.
+\item {\bf One Purpose Per Variable.} The specific variable that's
+  being re-used in the above example is {\tt dayOfMonth}, but this
+  also applies to variables that you might use in your method. Use
+  different variables for different purposes. They don't cost
+  anything. Best to make method parameters {\tt final} and hence
+  non-modifiable.
+\end{itemize}
+
+\section*{Comments and code documentation}
+Code should, ideally, be self-documenting, with good names for
+classes, methods, and variables. Methods should come with
+specifications in the form of Javadoc comments, e.g.
+
+{\small
+\begin{lstlisting}
+/**
+ * Compute the hailstone sequence.
+ * See http://en.wikipedia.org/wiki/Collatz_conjecture#Statement_of_the_problem
+ * @param n starting number of sequence; requires n > 0.
+ * @return the hailstone sequence starting at n and ending with 1.
+ *         For example, hailstone(3)=[3,10,5,16,8,4,2,1].
+ */
+public static List<Integer> hailstoneSequence(int n) {
+    ...
+}
+\end{lstlisting}
+}
+
+Note how this comment describes what the method does, in one sentence,
+provides context, and then describes the parameters and return values.
+
+Also, when you incorporate code from other sources, cite the sources.
+For instance, in the A2 {\tt index.html} file:
+\begin{lstlisting}
+    // adapted from Eli Bendersky's Lexer: http://eli.thegreenplace.net/2013/07/16/hand-written-lexer-in-javascript-compared-to-the-regex-based-ones
+    // public domain according to author
+    // modifications by Patrick Lam
+\end{lstlisting}
+This helps, for instance, when the source is later updated, and is the
+right thing to do in terms of IP (assuming, of course, that your use of
+the software is allowed by its license).
+
+Don't write comments that don't contribute to code understanding.
+If it's blatantly obvious from the code, it shouldn't be a comment.
+Such comments can mislead and hence do more harm than good.
+
+\end{document}
