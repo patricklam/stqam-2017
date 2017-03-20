@@ -1,0 +1,256 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\setmainfont{Latin Modern Roman}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage[listings]{tcolorbox}
+\newtcbinputlisting{\codelisting}[3][]{
+    extrude left by=1em,
+    extrude right by=2em,
+    listing file={#3},
+    fonttitle=\bfseries,
+    listing options={basicstyle=\ttfamily\footnotesize,numbers=left,language=Java,#1},
+    listing only,
+    hbox,
+}
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+
+
+\begin{document}
+
+\lecture{30 --- March 20, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+Additional note about ``fail fast'' from last week: often, software
+reads configuration in the initialization phase and then acts on it
+later. Example: a monitoring system calls ``dial'' executable to
+report an issue. It's better if the monitoring system reports that its
+path for ``dial'' doesn't work upon first load, rather than after
+there is an issue. Because if ``dial'' isn't there, you have the
+original issue, but you're probably not looking at the system, so the
+system can't tell you that there's that issue. Plus ``dial'' not being
+there is another issue.
+
+% https://twitter.com/rvagg/status/842928726597812224
+
+\section*{Static code analysis: PMD}
+We'll dive into static code analysis by talking about one particular code
+analysis tool, PMD\footnote{\url{pmd.github.io}}.
+Last week, we said that it was better to use tools to
+flag style issues. PMD is one way to do so. 
+
+\subsection*{PMD out of the box: built-in rulesets} 
+The easiest way to use PMD is in an IDE with its built-in rulesets. 
+It has rulesets for languages from C++ to Scala, including
+Java. For Java there are a number of rulesets, which group related rules. Let's look
+at a few examples of rules.
+
+\begin{itemize}[noitemsep]
+\item SimplifyConditional: [design ruleset] detect redundant null checks
+\begin{lstlisting}
+class Foo {
+  void bar(Object x) {
+    if (x != null && x instanceof Bar) {
+      // just drop the "x != null" check
+    }
+  }
+}
+\end{lstlisting}
+Note that this code is not wrong. It's just redundant.
+\item UseCollectionIsEmpty: [design ruleset] better to use {\tt c.isEmpty()} rather than {\tt c.size() == 0}
+\begin{lstlisting}
+class Foo {
+    void good() {
+        List foo = getList();
+        if (foo.isEmpty()) { /* blah */ }
+    }
+
+    void bad() {
+        List foo = getList();
+        if (foo.size() == 0) { /* blah */ }
+    }
+}
+\end{lstlisting}
+Again, it's not wrong to call {\tt size()} and see if the result is 0.
+It's just more idiomatic, and sometimes more efficient, to check {\tt isEmpty()}.
+\item MisplacedNullCheck: [basic ruleset] don't check nullness after relying on non-nullness
+\begin{lstlisting}
+public class Foo {
+    void bar() { if (a.equals(baz) || a == null) {}	}
+}
+\end{lstlisting}
+The check {\tt a == null} is never going to succeed, because {\tt a.equals()} would
+throw a {\tt NullPointerException} instead. So if {\tt a} can ever be null, there is
+a fault.
+\item UseNotifyAllInsteadOfNotify: [design ruleset] most of the time,
+  {\tt notifyAll()} is the right call to use, not {\tt
+    notify()}. Unless you know what you're doing, using {\tt notify()}
+  is going to result in a bunch of stuck threads, which is a bug.
+\end{itemize}
+
+Find more about the above rules at 
+\url{https://pmd.github.io/pmd-5.5.4/pmd-java/rules/java/design.html}.
+The pages on the PMD site are also useful for your assignment as sample code.
+
+I've included examples from the design and basic rulesets. There's a ruleset 
+specifically for JUnit, rule sets detecting empty or otherwise useless
+code, naming conventions, and much more.
+
+Linking back to last week's material: PMD and tools like it can tell you about
+things that may be wrong, or that are certainly wrong. However, they cannot
+tell you about how important that wrongness is. We still need (experienced!)
+human judgment to know that.
+
+\subsection*{Writing your own PMD rules} 
+Assignment 3 Question 1 asks you to write your own PMD rule. So we'll talk about
+how to write PMD rules. The intellectual core of a PMD rule is 
+a query on the Abstract Syntax Tree (AST). You can use either Java or XPath to describe
+this query. XPath is cleaner, in that it's a declarative query language.
+
+Here are some links about how to make rule sets and the boilerplate you need for rules:
+\begin{itemize}[noitemsep]
+\item \url{https://pmd.github.io/latest/customizing/howtomakearuleset.html}
+\item \url{https://pmd.github.io/latest/customizing/howtowritearule.html}
+\end{itemize}
+
+We'll be focussing on what goes into the rule itself, as per
+\url{https://pmd.github.io/latest/customizing/xpathruletutorial.html}.
+The tutorial skips a lot of detail about how to actually use XPath. So let's start
+with that.
+
+\paragraph{XPath.} Let's start from the fundamentals. You write 
+\emph{selectors} to find nodes. We'll look at a simple XML document.
+XPath also applies to web programming (in particular the Document
+Object Model) and also to the Java code we'll be analyzing. Source:
+\url{https://www.w3schools.com/xml/xpath_syntax.asp}; specification:
+\url{https://www.w3.org/TR/xpath/}.
+
+\newpage
+Here is an XML file:
+\begin{lstlisting}[language=XML]
+<?xml version="1.0" encoding="UTF-8"?>
+
+<bookstore>
+ <book>
+  <title lang="fr">Harry Potter</title>
+  <price>29.99</price>
+ </book>
+ <book>
+  <title lang="en">Learning XML</title>
+  <price>39.95</price>
+ </book>
+</bookstore>
+\end{lstlisting}
+You can observe the tree structure of the file. And you can play along
+with either
+\url{https://www.w3schools.com/xml/tryit.asp?filename=try_xpath_select_cdnodes}
+(which is hardcoded to XML similar to the above) or else {\tt
+  http://www.freeformatter.com/xpath-tester.html}.
+
+Consider XPath expression {\tt //price}. The
+result is the set of price nodes with data {\tt 29.99}, {\tt
+  39.95}. So, expression {\tt //price} selects nodes with name {\tt price};
+the {\tt //} means any descendants (including self) of the context node (= root node, here)---we asked for all descendants of the root named {\tt price}.
+And, {\tt count(//price)} counts the number of {\tt price} elements
+in the tree.
+
+We can also specify an exact path through the tree, say
+with {\tt /bookstore/book[1]/title}. This starts at the root,
+visits the {\tt bookstore} element, then its first {\tt book} child,
+then returns the title. If we omitted {\tt [1]}, then we'd
+get all of the titles.
+
+We can also select all elements that satisfy some condition,
+e.g. {\tt /bookstore/book[price>35]/title} selects the titles
+of books with price greater than 35.
+
+Note the {\tt lang} attribute. We can select elements with a
+certain value for {\tt lang}: {\tt //title[@lang="fr"]}.
+
+In general, square brackets can contain predicates. We've 
+seen pretty simple ones, but you can put arbitrary tree queries,
+e.g. {\tt //price[../title[text()="Learning XML"]]}.
+
+You can also combine predicates with {\tt and}, {\tt or}, etc.
+e.g. {\tt //title[../price < 35 or @lang="en"]}. 
+{\tt *} works as you might expect.
+
+The double-slash {\tt //} includes descendants and self.
+If you want descendants excluding self, write 
+e.g. {\tt descendant::book} as part of your expression.
+For the above example, there's no difference, but you can see it
+here:
+
+\begin{lstlisting}[language=XML]
+<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+ <book>
+  <book><title lang="fr">Harry Potter</title><price>29.99</price></book>
+ </book>
+ <book><title lang="en">Learning XML</title><price>39.95</price></book>
+</bookstore>
+\end{lstlisting}
+
+Try {\tt //book[descendent::book]} versus {\tt //book[book]}.
+
+\end{document}
