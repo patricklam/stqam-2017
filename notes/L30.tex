@@ -79,7 +79,7 @@ basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,bre
 
 \begin{document}
 
-\lecture{30 --- March 20, 2017}{Winter 2017}{Patrick Lam}{version 1}
+\lecture{30 --- March 20, 2017}{Winter 2017}{Patrick Lam}{version 2}
 
 Additional note about ``fail fast'' from last week: often, software
 reads configuration in the initialization phase and then acts on it
@@ -244,13 +244,13 @@ here:
 \begin{lstlisting}[language=XML]
 <?xml version="1.0" encoding="UTF-8"?>
 <bookstore>
- <book>
-  <book><title lang="fr">Harry Potter</title><price>29.99</price></book>
- </book>
- <book><title lang="en">Learning XML</title><price>39.95</price></book>
+ <book><book><title lang="fr">Harry Potter</title></book></book>
+ <book><title lang="en">Learning XML</title></book>
 </bookstore>
 \end{lstlisting}
 
-Try {\tt //book[descendent::book]} versus {\tt //book[book]}.
+UPDATED: Try {\tt //book[descendant::book]} versus {\tt
+  //book[//book]}. I used {\tt descendant::} in my solution, but you
+may be able to avoid it.
 
 \end{document}
