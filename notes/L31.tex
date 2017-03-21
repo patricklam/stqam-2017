@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{listings}
 \usepackage{tikz}
-\usepackage{enumerate}
+\usepackage{enumitem}
 \usepackage{url}
 \usepackage{amssymb}
 \usetikzlibrary{arrows,automata,shapes}
@@ -51,27 +51,6 @@
 \parskip 1.5ex
 %\renewcommand{\baselinestretch}{1.25}
 
-% http://gurmeet.net/2008/09/20/latex-tips-n-tricks-for-conference-papers/
-\newcommand{\squishlist}{
- \begin{list}{$\bullet$}
-  { \setlength{\itemsep}{0pt}
-     \setlength{\parsep}{3pt}
-     \setlength{\topsep}{3pt}
-     \setlength{\partopsep}{0pt}
-     \setlength{\leftmargin}{1.5em}
-     \setlength{\labelwidth}{1em}
-     \setlength{\labelsep}{0.5em} } }
-\newcommand{\squishlisttwo}{
- \begin{list}{$\bullet$}
-  { \setlength{\itemsep}{0pt}
-     \setlength{\parsep}{0pt}
-    \setlength{\topsep}{0pt}
-    \setlength{\partopsep}{0pt}
-    \setlength{\leftmargin}{2em}
-    \setlength{\labelwidth}{1.5em}
-    \setlength{\labelsep}{0.5em} } }
-\newcommand{\squishend}{
-  \end{list}  }
 
 \lstdefinelanguage{JavaScript}{
   keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
@@ -91,9 +70,59 @@
 
 \begin{document}
 
-\lecture{31 --- March 22, 2017}{Winter 2017}{Patrick Lam}{version 0}
+\lecture{31 --- March 22, 2017}{Winter 2017}{Patrick Lam}{version 1}
 
-Probably placed at L31.
+\section*{Using XPath to write PMD Rules}
+Last time, we saw how some notions on how to use XPath in general.
+Today, we'll talk about XPath and PMD. 
+
+Here's a rule ensuring that while statements must not contain directly contain
+other statements:
+
+{\tt //WhileStatement[not(Statement/Block)]}
+
+This rule matches {\tt WhileStatement}s whose {\tt Statement} child
+does not contain a {\tt Block}.
+
+See \url{https://pmd.github.io/latest/customizing/xpathruletutorial.html}
+for more examples. Let's consider this example, detecting definitions of {\tt Logger} variables.
+
+{\scriptsize
+\begin{lstlisting}
+    public class a {
+        Logger log1 = null;
+        Logger log2 = null;
+        int b;
+     
+        void myMethod() {
+            Logger log = null;
+            int a;
+        }
+        class c {
+            Logger a;
+            Logger b;
+        }
+    }
+\end{lstlisting} }
+
+First, we can detect {\tt Logger} variables. Note the use of {\tt @Image}. We are matching {\tt VariableDeclarator}s whose type is {\tt Logger}:
+{\small \begin{verbatim}
+//VariableDeclarator[../Type/ReferenceType/ClassOrInterfaceType[@Image='Logger']]
+\end{verbatim}
+}
+
+But we really want class definitions which contain more than one 
+variable of type {\tt Logger}. 
+\noindent
+{\small \begin{verbatim}
+//ClassOrInterfaceDeclaration
+    [count(//VariableDeclarator
+      [../Type/ReferenceType/ClassOrInterfaceType[@Image='Logger']])>1]
+\end{verbatim}
+
+You can use the PMD Designer to debug your rules, as I'll demo in class. The PMD Designer allows you to browse the AST and try out your queries as you build them.
+
+\paragraph{Hints for Assignment 3.} I think I've talked about everything you need to use, except for the {\tt starts-with} function that you can use for predicates. Everything else you can find from the PMD Designer. Recall that you're matching test methods that do \emph{not} have a call to {\tt mockCommandSender.getLastMessage} in an assert.
 
 \section*{Using Linters}
 We will also talk about linters in this lecture, based on Jamie Wong's blog post \url{jamie-wong.com/2015/02/02/linters-as-invariants/}.
@@ -155,16 +184,19 @@ main();
 
 So, when you're working in JavaScript and maintaining old code, you always have to
 deduce:
-\squishlist
+\begin{itemize}[noitemsep]
 \item is this variable defined?
 \item is this variable always defined?
 \item do I need to load a script to define that variable?
-\squishend
+\end{itemize}
 We have computers. They're powerful. Why is this the developer's problem?!
 
 \paragraph{Solution: Linters.}
 \begin{lstlisting}[language=JavaScript]
+//jshint undef:true, devel:true
+
 function main(x) {
+  "use strict";
   if (x) {
     console.log("Yay");
   } else {
@@ -177,14 +209,14 @@ main(true);
 
 Now:
 \begin{verbatim}
-$ nodejs /usr/local/lib/node_modules/jshint/bin/jshint --config jshintrc foo.js
-foo.js: line 5, col 17, 'num' is not defined.
+$ jshint lintee.js
+lintee.js: line 8, col 17, 'num' is not defined.
 
 1 error
 \end{verbatim}
 
-\vspace*{-1em}
-\paragraph{Invariant:}~\\
+\vspace*{-2em}
+\paragraph{Invariant:}~\\[-2em]
 
 \begin{center}
 ``If code passes JSHint, all top-level symbols resolve.''
@@ -195,11 +227,11 @@ foo.js: line 5, col 17, 'num' is not defined.
 ``If code is checked-in and commit hook ran,\\ all top-level symbols resolve.''
 \end{center}
 Of course, sometimes the commit hook didn't run. Better yet:
-\squishlist
+\begin{itemize}[noitemsep]
 \item Block deploys on test failures.
-\squishend
+\end{itemize}
 
-\paragraph{Better invariant.}~\\[1em]
+\paragraph{Better invariant.}~
 \begin{center}
 ``If code is deployed,\\ all top-level symbols resolve.''
 \end{center}

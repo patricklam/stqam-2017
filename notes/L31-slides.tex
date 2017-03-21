@@ -36,9 +36,9 @@
 \setbeamertemplate{navigation symbols}{}
 \usefonttheme{structurebold}
 
-\title{Software Testing, Quality Assurance \& Maintenance---Lecture 24*}
+\title{Software Testing, Quality Assurance \& Maintenance---Lecture 31}
 \author{Patrick Lam}
-\date{March 6, 2017}
+\date{March 22, 2017}
 
 \colorlet{redshaded}{red!25!bg}
 \colorlet{shaded}{black!25!bg}
@@ -116,6 +116,7 @@ Invariant:\\
 But what about this:
 \begin{lstlisting}
 function main(x) {
+  "use strict";
   if (x) {
     console.log("Yay");
   } else {
@@ -141,6 +142,7 @@ Invariant:\\
 \begin{changemargin}{2cm}
 \begin{lstlisting}
 function main() {
+  "use strict";
   try {
     console.log(num);
   } catch (err) {
