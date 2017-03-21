@@ -74,19 +74,23 @@ https://blog.fogcreek.com/increase-defect-detection-with-our-code-review-checkli
 
 L29: reporting bugs (old L28) = march 17
 
-L30: PMD
+L30: PMD out-of-the-box/XPath
 
-static vs dynamic analysis
-linters
-
-L31: static analysis I [fewer tools, more depth] [concurrency, old L10] [aComment, old L11]
-L32: static analysis II [type systems, immutability, compiler warnings, software model checking, JML tools. Coverity, FindBugs]
-L33: static analysis III [FB Infer / Clang address sanitizer] 
-L34: dynamic analysis I [assertions, race detectors, valgrind]
 
 ECE FYDP on March 21
 
-L35: dynamic analysis II [bugfinding, must-belief vs may-belief -> moved earlier because project]
+L31: PMD on java / linters
+
+L32: static vs dynamic analysis, static analysis I
+
+
+static analysis I [fewer tools, more depth] [concurrency, old L10] [aComment, old L11]
+L32: static analysis II [type systems, immutability, compiler warnings, software model checking, JML tools. Coverity, FindBugs]
+L33: static analysis III [FB Infer / Clang address sanitizer] 
+L34: dynamic analysis I [assertions, race detectors, valgrind & friends]
+
+
+L35: dynamic analysis II [bugfinding]
 L36: dynamic analysis III
 
 A3 due on March 24 (L32)
