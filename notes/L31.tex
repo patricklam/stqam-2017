@@ -70,7 +70,7 @@
 
 \begin{document}
 
-\lecture{31 --- March 22, 2017}{Winter 2017}{Patrick Lam}{version 1}
+\lecture{31 --- March 22, 2017}{Winter 2017}{Patrick Lam}{version 2}
 
 \section*{Using XPath to write PMD Rules}
 Last time, we saw how some notions on how to use XPath in general.
@@ -124,6 +124,23 @@ You can use the PMD Designer to debug your rules, as I'll demo in class. The PMD
 
 \paragraph{Hints for Assignment 3.} I think I've talked about everything you need to use, except for the {\tt starts-with} function that you can use for predicates. Everything else you can find from the PMD Designer. Recall that you're matching test methods that do \emph{not} have a call to {\tt mockCommandSender.getLastMessage} in an assert.
 
+\section*{The Landscape of Testing and Static Analysis Tools}
+Here's a survey of your options:
+\begin{itemize}[noitemsep]
+    \item manual testing;
+    \item running a JUnit test suite, manually generated;
+    \item running automatically-generated tests;
+    \item running static analysis tools.
+\end{itemize}
+We'll examine several points on this continuum.
+Some examples:
+\begin{itemize}[noitemsep]
+    \item Coverity: a static analysis tool used by 900+ companies, 
+      including BlackBerry, Mozilla, etc.
+    \item Microsoft requires Windows device drivers 
+      to pass their Static Driver Verifier for certification.
+\end{itemize}
+
 \section*{Using Linters}
 We will also talk about linters in this lecture, based on Jamie Wong's blog post \url{jamie-wong.com/2015/02/02/linters-as-invariants/}.
 
@@ -164,6 +181,7 @@ main(true);
 \end{lstlisting}
 Nope! The above invariant doesn't work.
 
+\newpage
 OK, what about this invariant:
 \begin{center}
 ``if code runs without crashing, all symbols referenced in the code path executed resolve?''
