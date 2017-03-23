@@ -79,16 +79,20 @@ basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,bre
 
 \begin{document}
 
-\lecture{32 --- March 24, 2017}{Winter 2017}{Patrick Lam}{version 0 -- DRAFT, not finished yet}
+\lecture{32 --- March 24, 2017}{Winter 2017}{Patrick Lam}{version 0 (still DRAFT)}
 
-\section*{Static analysis tools for Java that you can download}
+We've seen two tools so far: PMD and jshint. These tools both operate on
+Abstract Syntax Trees and ensure relatively shallow program properties.
 
-\paragraph{FindBugs.} An open-source static bytecode analyzer for Java out of
-the University of Maryland.
+\paragraph{FindBugs.} This tool is somewhat deeper than PMD. FindBugs is an 
+open-source static \emph{bytecode} analyzer for Java out of the
+University of Maryland.  A key difference is that it performs static
+analysis at Java bytecode level rather than AST level. It's therefore
+harder to write FindBugs rules.
 \begin{center}
   \url{findbugs.sourceforge.net}
 \end{center}
-It's like PMD in finding bug patterns:
+FindBugs finds bug patterns like:
 \begin{itemize}[noitemsep]
     \item off-by-one;
     \item null pointer dereference;
@@ -97,25 +101,52 @@ It's like PMD in finding bug patterns:
     \item uninitialized read in constructor;
     \item and more\ldots
 \end{itemize}
-A key difference is that it performs static analysis at Java bytecode level.
-It's therefore harder to write FindBugs rules.
+Such patterns are typically easier to evaluate at bytecode level because the
+variability of the AST has been compiled away.
 
-You can read a comparison of different tools in this paper:
+FindBugs, PMD, and other tools enforce generic rules that all software systems should satisfy. You can read a comparison of different tools in this paper:
 \begin{center}
   \url{http://www.cs.umd.edu/~jfoster/papers/issre04.pdf}
 \end{center}
 
-FindBugs gives some false positives. 
+FindBugs, like all static analysis tools, gives some false positives.
 Here are some techniques to help avoid them:
 \begin{center}
   \url{patricklam.ca/papers/14.msr.saa.pdf}
 \end{center}
 
+\section*{Beyond hard-coded rules}
+
+\paragraph{Coverity Static Analyzer.} 
+This industrial-strength tool (statically) identifies bugs in C/C++,
+Java, and C\# codebases. It claims to scale to ``hundreds of users,
+thousands of defects, and millions of lines of code in a single
+analysis.'' It does so by inferring must-beliefs and may-beliefs from
+the code base, as we've discussed in Lecture 22. Coverity does a lot
+of work to keep the false positive rate low. Your project reproduces some 
+of the key technology behind Coverity.
+
+Coverity is a commercial product which can find many bugs in large
+(millions of lines) programs; it is therefore a leading company in
+building bug detection tools. Clients (900+) include organizations
+such as Blackberry, Yahoo, Mozilla, MySQL, McAfee, ECI Telecom,
+Samsung, Siemens, Synopsys, NetApp, Akamai, etc. These include domains
+including EDA, storage, security, networking, government (NASA, JPL),
+embedded systems, business applications, operating systems, and open
+source software.  We have access to Coverity for this course, but
+there's also a free trial:
+\begin{center}
+  \url{http://softwareintegrity.coverity.com/FreeTrialWebSite.html}
+\end{center}
+
+
 \paragraph{Korat (University of Illinois).}
 Key Idea: Generate Java objects from a representation invariant specification
 written as a Java method.
 
-For instance, here's a binary tree.
+For instance, here's a binary tree: 
+
+\begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1cm,
                     semithick,initial text=]
 
@@ -129,7 +160,8 @@ For instance, here's a binary tree.
         (0) edge              node {} (2)
         (1) edge              node {} (3)
         (1) edge              node {} (4);
-\end{tikzpicture} \hspace*{2em} Binary Tree!\\[1em]
+\end{tikzpicture} 
+\end{center}
 
 One characteristic of a binary tree:
 \begin{itemize}
