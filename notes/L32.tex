@@ -82,7 +82,16 @@ basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,bre
 \lecture{32 --- March 24, 2017}{Winter 2017}{Patrick Lam}{version 0 (still DRAFT)}
 
 We've seen two tools so far: PMD and jshint. These tools both operate on
-Abstract Syntax Trees and ensure relatively shallow program properties.
+Abstract Syntax Trees and ensure relatively shallow program properties. Out of the
+box, PMD guarantees generic properties (but we also talked about writing our own
+checkers). 
+
+jshint, PMD, and other tools (like FindBugs, below) enforce generic
+rules that all programs should satisfy. You can read a
+comparison of different tools in this paper:
+\begin{center}
+  \url{www.cs.umd.edu/~jfoster/papers/issre04.pdf}
+\end{center}
 
 \paragraph{FindBugs.} This tool is somewhat deeper than PMD. FindBugs is an 
 open-source static \emph{bytecode} analyzer for Java out of the
@@ -104,20 +113,32 @@ FindBugs finds bug patterns like:
 Such patterns are typically easier to evaluate at bytecode level because the
 variability of the AST has been compiled away.
 
-FindBugs, PMD, and other tools enforce generic rules that all software systems should satisfy. You can read a comparison of different tools in this paper:
-\begin{center}
-  \url{http://www.cs.umd.edu/~jfoster/papers/issre04.pdf}
-\end{center}
-
+\paragraph{False positives.}
 FindBugs, like all static analysis tools, gives some false positives.
-Here are some techniques to help avoid them:
+(The course project has a question about false positives.) In general, they
+occur because the analysis tool is not powerful enough. Because of the
+halting problem, there can be no all-powerful tool.
+
+Consider this case:
+\begin{lstlisting}
+  try { socket.close(); }
+  catch (Exception ignore) {}
+
+  try { reader.close(); }
+  catch (Exception ignore) {}
+\end{lstlisting}
+FindBugs, of course, declares ``this method might ignore an exception'', but it's fine in
+this case, since there's nothing that the program needs to do about failed close actions.
+
+\newpage
+Here are some techniques to help avoid false positives:
 \begin{center}
   \url{patricklam.ca/papers/14.msr.saa.pdf}
 \end{center}
 
 \section*{Beyond hard-coded rules}
 
-\paragraph{Coverity Static Analyzer.} 
+\paragraph{Inferring specifications: Coverity Static Analyzer.} 
 This industrial-strength tool (statically) identifies bugs in C/C++,
 Java, and C\# codebases. It claims to scale to ``hundreds of users,
 thousands of defects, and millions of lines of code in a single
@@ -139,6 +160,13 @@ there's also a free trial:
   \url{http://softwareintegrity.coverity.com/FreeTrialWebSite.html}
 \end{center}
 
+
+\subsection*{Developer-provided specifications}
+A number of research-quality tools aim to enforce developer-provided specifications.
+Developers should be aware of how their software works. Specification languages
+enable developers to express this knowledge in a machine-readable way and tools
+can enforce that the software satisfies its specification. We'll discuss some 
+specification-based tools below.
 
 \paragraph{Korat (University of Illinois).}
 Key Idea: Generate Java objects from a representation invariant specification
@@ -168,8 +196,9 @@ One characteristic of a binary tree:
 \item left \& right pointers don't refer to same node.
 \end{itemize}
 
+\newpage
 We can express that characteristic in Java as follows:
-\begin{lstlisting}[language=Java]
+{\small \begin{lstlisting}[language=Java]
 boolean repOk() {
   if (root == null) return size == 0; 	   	      // empty tree has size 0
   Set visited = new HashSet(); visited.add(root);
@@ -189,6 +218,7 @@ boolean repOk() {
   return true;
 }
 \end{lstlisting}
+}
 
 Korat then generates all distinct (``non-isomorphic'') trees, 
     up to a given size (say 3).
@@ -199,6 +229,33 @@ It uses these trees as inputs for testing
     \url{korat.sourceforge.net/index.html}
   \end{center}
 
+\paragraph{ESC/Java2.}
+An alternative to generating test cases is using theorem-proving
+technology. ESC/Java2 is a research tool that reads JML specifications
+and enforces them. Here's some sample code that ESC/Java2 can verify.
+{\small \begin{lstlisting}
+class Bag {
+  int[] a; //@ invariant a != null;
+  int   n; //@ invariant 0 <= n && n <= a.length;
+  //@ requires n > 0;
 
+  int extractMin() {
+    int m = Integer.MAX_VALUE;
+    int mindex = 0;
+    for (int i = 0; i < n; i++) {
+      if (a[i] < m) { mindex = i; m = a[i]; } 
+    }
+    n--;
+    a[mindex] = a[n];
+    return m;
+  }
+\end{lstlisting} }
+ESC/Java2 reads the Java code and produces verification conditions for the theorem
+prover, which in turn uses a backtracking search to assign values to variables.
+This tool thus statically guarantees that the code satisfies its specifications.
+It's also possible to check these properties at run-time by adding assertions to the code.
+% 1. null dereference a[i] < m: add the invariant on a
+% 2. array index possibly too large inside loop: add the invariant on n; for loop guarantees
+% 3. possible negative array index at a[n]: add the requires n > 0
 
 \end{document}
