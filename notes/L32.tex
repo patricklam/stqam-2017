@@ -79,7 +79,7 @@ basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,bre
 
 \begin{document}
 
-\lecture{32 --- March 24, 2017}{Winter 2017}{Patrick Lam}{version 1}
+\lecture{32 --- March 24, 2017}{Winter 2017}{Patrick Lam}{version 2}
 
 We've seen two tools so far: PMD and jshint. These tools both operate on
 Abstract Syntax Trees and ensure relatively shallow program properties. Out of the
@@ -229,33 +229,5 @@ It uses these trees as inputs for testing
     \url{korat.sourceforge.net/index.html}
   \end{center}
 
-\paragraph{ESC/Java2.}
-An alternative to generating test cases is using theorem-proving
-technology. ESC/Java2 is a research tool that reads JML specifications
-and enforces them. Here's some sample code that ESC/Java2 can verify.
-{\small \begin{lstlisting}
-class Bag {
-  int[] a; //@ invariant a != null;
-  int   n; //@ invariant 0 <= n && n <= a.length;
-  //@ requires n > 0;
-
-  int extractMin() {
-    int m = Integer.MAX_VALUE;
-    int mindex = 0;
-    for (int i = 0; i < n; i++) {
-      if (a[i] < m) { mindex = i; m = a[i]; } 
-    }
-    n--;
-    a[mindex] = a[n];
-    return m;
-  }
-\end{lstlisting} }
-ESC/Java2 reads the Java code and produces verification conditions for the theorem
-prover, which in turn uses a backtracking search to assign values to variables.
-This tool thus statically guarantees that the code satisfies its specifications.
-It's also possible to check these properties at run-time by adding assertions to the code.
-% 1. null dereference a[i] < m: add the invariant on a
-% 2. array index possibly too large inside loop: add the invariant on n; for loop guarantees
-% 3. possible negative array index at a[n]: add the requires n > 0
 
 \end{document}
