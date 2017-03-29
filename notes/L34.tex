@@ -1,0 +1,131 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\setmainfont{Latin Modern Roman}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage[listings]{tcolorbox}
+\newtcbinputlisting{\codelisting}[3][]{
+    extrude left by=1em,
+    extrude right by=2em,
+    listing file={#3},
+    fonttitle=\bfseries,
+    listing options={basicstyle=\ttfamily\footnotesize,numbers=left,language=Java,#1},
+    listing only,
+    hbox,
+}
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+
+
+\begin{document}
+
+\lecture{34 --- March 29, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\section*{JML}
+The Java Modelling Language allows developers to specify structured
+design-by-contract properties for Java code. In particular, you can
+specify preconditions and postconditions for methods as well as class
+invariants.  These are all in a Java-like expression language.  It is
+possible to verify these predicates either statically or dynamically.
+
+\paragraph{Static verification.}
+ESC/Java2 is a research tool that reads JML specifications
+and enforces them statically using theorem-proving technology. 
+Here's some sample code that ESC/Java2 can verify.
+{\small \begin{lstlisting}
+class Bag {
+  int[] a; //@ invariant a != null;
+  int   n; //@ invariant 0 <= n && n <= a.length;
+
+  //@ requires n > 0;
+  int extractMin() {
+    int m = Integer.MAX_VALUE;
+    int mindex = 0;
+    for (int i = 0; i < n; i++) {
+      if (a[i] < m) { mindex = i; m = a[i]; } 
+    }
+    n--;
+    a[mindex] = a[n];
+    return m;
+  }
+}
+\end{lstlisting} }
+ESC/Java2 reads the Java code and produces verification conditions for the theorem
+prover, which in turn uses a backtracking search to assign values to variables.
+This tool thus statically guarantees that the code satisfies its specifications.
+It's also possible to check these properties at run-time by adding assertions to the code.
+% 1. null dereference a[i] < m: add the invariant on a
+% 2. array index possibly too large inside loop: add the invariant on n; for loop guarantees
+% 3. possible negative array index at a[n]: add the requires n > 0
+
+\paragraph{Dynamic verification.}
+It's easier to perform dynamic verification for many JML
+specifications.  In the above example, it suffices for the compiler to
+insert an assertion that \verb+n > 0+ upon entry to {\tt extractMin},
+as well as assumptions of the invariants.  Then upon exit, the
+compiler inserts assertions for any {\tt ensures} clauses as well as
+the invariants. So we know that the invariant always holds when the
+class is not actively working on updating its state.
+
+\end{document}
+

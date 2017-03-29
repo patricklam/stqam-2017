@@ -1,0 +1,214 @@
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\setmainfont{Latin Modern Roman}
+\setmonofont{Cousine}[Scale=MatchLowercase]
+\usetikzlibrary{arrows,automata,shapes}
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{bt} = [rectangle, draw, fill=blue!20, 
+    text width=1em, text centered, rounded corners, minimum height=2em]
+
+\newtheorem{defn}{Definition}
+\newtheorem{crit}{Criterion}
+\newcommand{\true}{\mbox{\sf true}}
+\newcommand{\false}{\mbox{\sf false}}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Software Testing, Quality Assurance and Maintenance } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{Lecture #1}}
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\usepackage[listings]{tcolorbox}
+\newtcbinputlisting{\codelisting}[3][]{
+    extrude left by=1em,
+    extrude right by=2em,
+    listing file={#3},
+    fonttitle=\bfseries,
+    listing options={basicstyle=\ttfamily\footnotesize,numbers=left,language=Java,#1},
+    listing only,
+    hbox,
+}
+\lstset{ %
+language=Java,
+basicstyle=\ttfamily,commentstyle=\scriptsize\itshape,showstringspaces=false,breaklines=true,numbers=left}
+
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+
+
+\begin{document}
+
+\lecture{35 --- March 31, 2017}{Winter 2017}{Patrick Lam}{version 1}
+
+\section*{Dynamic Analyses}
+We'll continue talking about generic properties, but this time we'll talk about
+dynamic verification of these properties.
+
+\subsection*{Memory errors}
+Let's start by talking about leaks and other memory errors.
+We saw static detection of leaks with Facebook Infer.
+Valgrind's Memcheck tool and Clang's Address Sanitizer detect memory errors
+dynamically.
+
+This webpage compares different tools:
+
+\url{https://github.com/google/sanitizers/wiki/AddressSanitizerComparisonOfMemoryTools}
+
+
+Valgrind's Memcheck detects the following errors:
+\begin{itemize}[noitemsep]
+\item Illegal reads/writes: Memcheck complains about accesses to memory that
+the program should not be accessing (e.g. not returned from a {\tt malloc}, or
+below the stack pointer).
+\item Reads of uninitialized variables: Memcheck tells you about reads of
+memory that has never been initialized, if the program prints out the resulting values.
+\item Illegal/wrong frees: Of course, you're not allowed to free memory that
+you didn't get from a memory allocation function, so Memcheck tells you.
+It also tells you when you use {\tt free()} on something you got from {\tt new[]}.
+\item Overlapping source/destination for memory moves.
+\item Fishy argument values: You probably don't mean to request either -3
+bytes or more than $2^{63}$ bytes.
+\item Memory leaks: Memcheck tells you when you have memory that didn't get freed
+but that you no longer have any pointers to.
+\end{itemize}
+You will pay a significant performance penalty when using Valgrind; Memcheck typically
+comes with a 10$\times$--50$\times$ slowdown. This is usable for bug diagnosis but
+obviously not for production.
+
+Here is more information on what Valgrind can do. It can do more than just
+Memcheck as well.
+\begin{center}
+\url{http://maintainablecode.logdown.com/posts/245425-valgrind-is-not-a-leak-checker}
+\end{center}
+
+The AddressSanitizer tool, supported by both clang and gcc,
+also detects memory errors. These errors are similar to those that
+Valgrind can detect. The technology is different, but the goals are
+similar. Because it uses different implementation technology, it runs
+much more quickly than Valgrind, with a reported typical slowdown of
+2$\times$.
+
+\pagebreak
+Find some information about AddressSanitizer here:
+\vspace*{-1em}
+\begin{center}
+\url{http://btorpey.github.io/blog/2014/03/27/using-clangs-address-sanitizer/}
+\end{center}
+\vspace*{-1em}
+
+AddressSanitizer finds the following errors:
+\vspace*{-1em}
+\begin{itemize}[noitemsep]
+\item    Out-of-bounds accesses to heap, stack and globals
+\item    Use-after-free
+\item    Use-after-return
+\item    Use-after-scope
+\item    Double-free, invalid free
+\item    Memory leaks (experimental)
+\end{itemize}
+\vspace*{-1em}
+
+Note that Valgrind may return false positives, while AddressSanitizer has a design goal 
+of returning no false positives. In fact, ASan aborts the program whenever it encounters
+a memory problem. You're supposed to fix it before proceeding. Of course, ASan might miss 
+some problems.
+
+\paragraph{Implementation Techniques.}
+Valgrind and ASan use different techniques, hence yield different results.
+Valgrind emulates a CPU and checks, at every memory access, whether that
+access is legitimate or not. ASan, on the other hand, rewrites relevant memory accesses
+at compile-time to call a checking library. It turns out that calling a library is cheaper
+than emulating the CPU.
+
+Conceptually, ASan maintains shadow memory---
+metadata about where the program is allowed to access (or not).
+Then, it replaces the {\tt malloc()} and {\tt free()}
+calls with its own versions; these versions update shadow memory and indicate
+that allocated memory is OK to access, unallocated memory not OK. 
+Finally, every memory access in the program gets replaced with a checked access:
+\begin{lstlisting}
+if (IsPoisoned(address)) {
+  ReportError(address, kAccessSize, kIsWrite);
+}
+*address = ...;  // or: ... = *address;
+\end{lstlisting}
+This is not so different from what Java does to check array accesses, for instance,
+but applies much more generally, to every memory access in the program.
+
+More details about ASan:
+\vspace*{-1em}
+\begin{center}
+\url{https://github.com/google/sanitizers/wiki/AddressSanitizerAlgorithm}
+\end{center}
+Both of these tools are open-source. The source code is the ultimate description of the tools.
+
+\subsection*{Race detectors}
+Valgrind also has a race detection tool, Helgrind. This tool dynamically detects
+memory that is concurrently accessed by two threads. Such accesses are fine as long
+as they are controlled by a lock. At runtime, Helgrind knows which locks are held.
+If the program does not hold enough locks, then Helgrind flags a memory error.
+
+\hspace*{.2\textwidth}\begin{minipage}{.4\textwidth}
+\begin{lstlisting}
+  acquire(lock1);
+  read(x);
+  release(lock1);
+\end{lstlisting}
+\end{minipage}\
+\begin{minipage}{.4\textwidth}
+\begin{lstlisting}
+  acquire(lock2);
+  write(x); // different lock!
+  release(lock2);
+\end{lstlisting}
+\end{minipage}
+
+%test generation tools?
+%security
+%fuzzing was a dynamic analysis
+
+%dynamic analysis: concurrency---race detectors
+%what else as a dynamic analysis?
+
+\end{document}
