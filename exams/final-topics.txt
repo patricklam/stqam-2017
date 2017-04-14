@@ -1,0 +1,33 @@
+* Faults / defects, error, failures
+* Static vs dynamic
+* Test cases
+* Test requirements, coverage criteria
+* Exploratory testing
+* Statement, branch coverage
+    - control-flow graph
+* Nondeterminism
+* Finite State Machines (RT coverage)
+* Fuzzing
+* Mutation testing
+* Limits of coverage
+* Is mutation testing good / is coverage good?
+---
+Engineering Test Suites
+* why tests are great
+* test design principles
+* Selenium, page object design pattern
+* XPath
+* Coverity, must-beliefs/may-beliefs
+* regression vs unit tests
+* flaky tests
+* why use mock objects
+---
+Tools
+* code review
+* bug reports
+* static vs dynamic
+* writing PMD rules
+* FB infer
+* dynamic analysis for leak detection/memory errors
+
+
