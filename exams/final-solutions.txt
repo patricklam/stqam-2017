@@ -1,0 +1,117 @@
+Question 1: here are some sample answers, but they are not the only correct answers.
+
+1a. PMD, syntactic analysis (static) tool. This tool must be
+    configured to use the style guide.
+
+1b. Memcheck/valgrind, dynamic analysis tool. This tool only detects
+    leaks triggered by the supplied inputs.
+
+1c. Code review, manual technique. Relies on a culture of thougtful
+    code review.
+
+1d. Exploratory testing, manual technique. Requires suitable testers,
+    and is resource-intensive. Almost impossible for the developers
+    who wrote the code to perform.
+
+1e. Continuous integration, test infrastructure. Setting up continuous
+    integration can be challenging and may require dedicated
+    infrastructure (or serverless setup). Only detects compilation
+    errors for configured platforms.
+
+Question 2: Yes, positive as well as critical comments were
+appropriate here. There wasn't much that was *wrong* with the code,
+and indeed it's good to focus on the positive during code review
+(while still pointing out things that need to be fixed).
+
+* public method names: configureImports is not specific about what
+  it's doing with the imports. Might consider something like
+  "addImportsForClassLoader".
+
+* doc comments: getPackageName has none (but this is probably OK).
+  findClassNameDecl() needs one. Others are good.
+
+* method scope: each method does one specific thing, which is good;
+  for instance, we can see "find*" methods really do find the
+  requested thing and return it.
+
+Question 3:
+
+* Actual behaviour will pay 95, mock pays 10 != 95. Fix line 16 =>
+  pay(95)
+
+* line 23 should use mockTransport, not an actual new
+  UberTransport. Fix to use mockTransport.
+
+* waitUntilArrivedAt has no encoded behaviour;
+  fix => add mockCar.waitUntilArrivedAt().anyTimes() before line 19.
+
+b) This is testing state, not behaviour, which is inconsistent with this
+   method's approach.
+
+   Use a mock wallet around line 22:
+
+   Wallet mockWallet = mock(Wallet);
+   mockWallet.setAmount(500);
+   mockWallet.takeOut(95);
+
+Question 4:
+
+[see q4-soln.pdf]
+
+SRTC:
+
+[$, snarties]
+[snarties, $]
+
+CRTC: SRTC +
+
+[$, $, cancel]
+[$, $, snarties]
+[$, cancel]
+[snarties, snarties, cancel]
+[snarties, snarties, $]
+[snarties, cancel]
+
+Question 5:
+
+* dp149... is specific to the particular search result and does not generalize.
+
+We assume that the desired field is just below the unique field with a
+data-crm-custom attribute.
+
+* XPath = [//input[@data-crm-custom]/../input[2]]
+
+(We will accept answers that express this idea even if syntax isn't
+perfect.)
+
+* The macro can be subject to race conditions; it may execute the
+  query before the element loads. Mitigations don't have to fix the
+  problem completely. Possible mitigations include inserting a timed
+  wait, or waiting for the element to appear, or reloading the page
+  and hope for better race outcomes.
+
+Question 6:
+
+(a) [RIGHT, LEFT]
+
+(b) We may assume no exceptions.
+
+    A: definitely reached, implied by seeing output at line C, line A precedes C
+    B: same as A
+    C: there are only 2 print statements, line G can only produce 1 output,
+       we have > 1 output, so C must execute
+    D: if C executes, so must D.
+    E: second output == 0 implies LEFT is taken.
+    F: unknown: input could be either LL or LR.
+
+Question 7:
+
+Note that I didn't say that the mutant had to be nontrivial.
+
+a) line 5: count = 1
+   killed by output [5] -> was 1, now 2 (has output -> and hence not stillborn)
+
+b) add BOMB before statement 8.
+   non-stillborn: doesn't crash on [2] and returns 0 for both.
+   non-equivalent: crashes on [1] but original returns 1.
+
