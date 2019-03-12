@@ -26,23 +26,22 @@ basicstyle=\scriptsize,commentstyle=\scriptsize\itshape,showstringspaces=false,b
 \begin{document}
 
 \title{
-(ECE453/CS447/ECE653/CS647/SE465) \\
+(SE465) \\
 Software Testing, Quality Assurance, and Maintenance\\
 Project, Version 1}
-\author{Instructor: Patrick Lam (credit: Lin Tan)\\
-Lab Instructor: Irene Huang \\
-Release Date:  February 6, 2017 }
+\author{Instructor: Patrick Lam (author credit: Lin Tan)\\
+Release Date:  March 11, 2019 }
 \renewcommand{\today}{}
 \maketitle
 
 \begin{center}
-{\bf Due:  11:59 PM, Friday, April 3, 2017 (no late days)} \\
-{\bf Group Sign-up Due:  11:59 PM, Monday, February 27, 2017} \\
-{\bf Submit: via ecgit}
-		
+{\bf Due:  11:59 PM, Friday, April 5, 2019 (no late days)} \\
+{\bf Group Sign-up Due:  11:59 PM, Friday, March 15, 2019} \\
+{\bf Submit: via git.uwaterloo.ca}
+
 \end{center}
 
-Please go to \url{https://patricklam.ca/se465-groups/1171/project/} (redirects to Google Forms) to sign up your project group by {\bf 11:59 PM February 27, 2017}.  Choose your own group members (2--3 students per group). The signup page will tell you your repo address and fork the skeleton repo for you.
+Please go to \url{https://patricklam.ca/se465-groups/1191/project/} (redirects to Google Forms) to sign up your project group by {\bf 11:59 PM March 15, 2019}.  Choose your own group members (2--3 students per group). Every day until March 15 we'll fork the skeleton repo for you and you'll get notification of the address.
 
 You can also look at \url{https://patricklam.ca/stqam/files/proj-skeleton.tar.gz}, in
 case you want to examine the files before committing to a group. But
@@ -59,13 +58,12 @@ Please read the following instructions carefully. {\bf If you do not follow the 
 penalized up to 5 points}. 
 
 \vspace{0.03in}
-{\bf Electronic submission:} Push your project files to your group repo on ecgit. We expect to find:
+{\bf Electronic submission:} Push your project files to your group repo on {\tt git.uwaterloo.ca}. We expect to find:
 
 \begin{itemize}
 \item in the root of the repo, a single PDF file ``proj\_sub.pdf'' for
   both part (I) and part (II). At the top of this PDF file, you must
-  include your team members' full names, student numbers, the course
-  numbers (one of ECE453, CS447, or SE465), and your uwaterloo email
+  include your team members' full names and your uwaterloo email
   addresses.
 
 \item a directory ``pi'' that contains your code for Project Part (I) (follow the instructions for part (I)).
@@ -98,27 +96,27 @@ as ``pi/partA''.
 You can submit multiple times.  After submission, {\bf please 
 re-clone your submissions to make sure you have uploaded the right files/versions}.
 
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-Part   &  People in Charge \\ \hline
-(I) & Irene (Lab Instructor)\\ 
- & TBA \\ 
- & TBA\\ \hline
-(II) 
-& TBA\\
-& TBA\\ 
-\hline
-%Total &  70 & \\ \hline
-\end{tabular}
-\end{center}
+%% \begin{center}
+%% \begin{tabular}{|c|c|c|}
+%% \hline
+%% Part   &  People in Charge \\ \hline
+%% (I) & Irene (Lab Instructor)\\ 
+%%  & TBA \\ 
+%%  & TBA\\ \hline
+%% (II) 
+%% & TBA\\
+%% & TBA\\ 
+%% \hline
+%% %Total &  70 & \\ \hline
+%% \end{tabular}
+%% \end{center}
 
 \section*{Part (I) Building an Automated Bug Detection Tool} %(60 points)} 
 You will learn \emph{likely-invariants} from call graphs in a way reminiscent to that in SOSP'01 paper discussed in class (Coverity). In particular, you will learn what pairs of functions are called together. 
 You will then use these likely-invariants to automatically detect software bugs. 
 
 \subsection*{(a) Inferring Likely Invariants for Bug Detection (40 points)}
-Take a look at the following contrived code segment. 
+Take a look at the following contrived code segment (also seen in lecture):
 \begin{verbatim}
 void scope1() {
   A(); B(); C(); D();
@@ -177,7 +175,7 @@ bug: D in scope2, pair: (B, D), support: 4, confidence: 80.00%
 
 \paragraph{Generate call graphs using LLVM.}
 %You compile source code into bitcode format, 
-Given a bitcode file, you use LLVM {\em opt} to generate call graphs in plain text format,
+Given a bitcode file, use LLVM {\em opt} to generate call graphs in plain text format,
 and then analyze the textual call graphs to generate function pairs and detect bugs. 
 %Two methods, either parse call graphs from text, or write LLVM pass. In either case, use 
 The {\em opt} tool is installed on ecelinux (ecelinux.uwaterloo.ca) under /usr/local/bin.
